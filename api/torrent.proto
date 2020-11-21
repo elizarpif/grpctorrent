@@ -9,8 +9,9 @@ message UploadFileRequest {
   string client_id = 1;
   string name = 2; // имя файла
   uint64 piece_length = 3; // длина кусочка
-  uint64 length = 4; // длина файла
-  string hash = 5 ; // хэш файла
+  uint64 pieces = 4; // всего кусочков
+  uint64 length = 5; // длина файла
+  string hash = 6 ; // хэш файла
 }
 
 message GetPeersRequest {
