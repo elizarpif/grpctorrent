@@ -5,8 +5,8 @@ option go_package = ":;api";
 
 import "google/protobuf/empty.proto";
 
-message TorrentFile {
-  string announce = 1; // торрент-сервер
+message UploadFileRequest {
+  string client_id = 1;
   string name = 2; // имя файла
   uint64 piece_length = 3; // длина кусочка
   uint64 length = 4; // длина файла
@@ -37,7 +37,7 @@ message PiecesInfo {
 }
 
 service Tracker {
-  rpc Upload (TorrentFile) returns (google.protobuf.Empty); // загрузить торрент-файл на сервер
+  rpc Upload (UploadFileRequest) returns (google.protobuf.Empty); // загрузить торрент-файл на сервер
   rpc GetPeers (GetPeersRequest) returns (ListPeers); // заявить о себе и получить список пиров
   rpc PostPiecesInfo (PiecesInfo) returns (google.protobuf.Empty); // сообщить информацию о файловых кусочках которые клиент уже скачал и раздает
 }
