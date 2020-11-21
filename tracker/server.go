@@ -33,11 +33,11 @@ func NewServer() *Server {
 	}
 }
 
-func (s Server) Upload(ctx context.Context, file *api.TorrentFile) (*empty.Empty, error) {
+func (s *Server) Upload(ctx context.Context, file *api.TorrentFile) (*empty.Empty, error) {
 	panic("implement me")
 }
 
-func (s Server) GetPeers(ctx context.Context, request *api.GetPeersRequest) (*api.ListPeers, error) {
+func (s *Server) GetPeers(ctx context.Context, request *api.GetPeersRequest) (*api.ListPeers, error) {
 	peerID := uuid.MustParse(request.PeerId)
 
 	// если такого пира не существует, то добавим в список
@@ -72,6 +72,6 @@ func (s Server) GetPeers(ctx context.Context, request *api.GetPeersRequest) (*ap
 	return resp, nil
 }
 
-func (s Server) PostPiecesInfo(ctx context.Context, info *api.PiecesInfo) (*empty.Empty, error) {
+func (s *Server) PostPiecesInfo(ctx context.Context, info *api.PiecesInfo) (*empty.Empty, error) {
 	panic("implement me")
 }
