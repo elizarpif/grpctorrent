@@ -22,11 +22,9 @@ message ListPeers {
   uint64 count = 1;
 
   message Peer {
-    string ip = 1;
-    uint64 port = 2;
-    string address = 3; // summary address
+    string address = 1; // summary address
 
-    repeated uint64 serial_pieces = 4;  // номера доступных кусочков
+    repeated uint64 serial_pieces = 2;  // номера доступных кусочков
   }
 
   repeated Peer peers = 2;
