@@ -20,6 +20,7 @@ type file struct {
 }
 
 // fixme
+// установление длины каждого куска файла
 func getPieceLength(length int) int {
 	if length < 256 {
 		return 1
@@ -37,6 +38,7 @@ func getPieceLength(length int) int {
 	return 256 * 1024 * 1024 // 256 MB
 }
 
+// деление файла на куски
 func splitFile(content []byte) map[uint]*api.Piece {
 	pieceLen := getPieceLength(len(content))
 
@@ -56,6 +58,7 @@ func splitFile(content []byte) map[uint]*api.Piece {
 	return mapPiece
 }
 
+// чтение файла и создание торрент-файла с последующей загрузкой
 func newFile(name string) (*file, error) {
 	fContent, err := ioutil.ReadFile(name)
 	if err != nil {
@@ -66,11 +69,13 @@ func newFile(name string) (*file, error) {
 		name:      name,
 		hash:      md5.Sum(fContent),
 		piecesMap: splitFile(fContent),
+		allPieces: true,
 	}
 
 	return f, nil
 }
 
+// сортировка кусочков (на всякий)
 func (f *file) sortPieces() []*api.Piece {
 	pieces := make([]*api.Piece, 0, len(f.piecesMap))
 	for _, v := range f.piecesMap {
@@ -84,6 +89,7 @@ func (f *file) sortPieces() []*api.Piece {
 	return pieces
 }
 
+// запись в файл
 func (f *file) write(bytes []byte) error {
 	file, err := os.Create(f.name)
 	if err != nil {
@@ -95,6 +101,7 @@ func (f *file) write(bytes []byte) error {
 	return err
 }
 
+// склеивание файла из кусочков
 func (f *file) MergePieces(ctx context.Context) error {
 	log := getLogger(ctx)
 

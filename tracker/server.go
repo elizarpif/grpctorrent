@@ -22,8 +22,8 @@ func NewPeer(addr net.Addr, id uuid.UUID) *Peer {
 }
 
 type Server struct {
-	hashPeers map[string][]*Peer
-	peers     map[uuid.UUID]*Peer
+	hashPeers map[string][]*Peer  // хэш файла к пирам
+	peers     map[uuid.UUID]*Peer // пиры по id
 }
 
 func NewServer() *Server {
@@ -33,8 +33,41 @@ func NewServer() *Server {
 	}
 }
 
-func (s *Server) Upload(ctx context.Context, file *api.TorrentFile) (*empty.Empty, error) {
-	panic("implement me")
+func (s *Server) Upload(ctx context.Context, file *api.UploadFileRequest) (*empty.Empty, error) {
+	clientID := uuid.MustParse(file.ClientId)
+
+	isPeer, exists := s.peers[clientID]
+	// если такого пира не существует, то добавим в список
+	if !exists {
+		p, ok := peer.FromContext(ctx)
+		if !ok {
+			getLogger(ctx).Error("cannot get peer from context")
+			return nil, errors.New("cannot get peer from context")
+		}
+
+		isPeer = NewPeer(p.Addr, clientID)
+		s.peers[clientID] = isPeer // добавляем в мапу пиров
+	}
+
+	_, exists := isPeer.files[file.Hash]
+	if !exists {
+		newPieceInfo := &api.PiecesInfo{
+			HashFile: file.Hash,
+			AllFile:  true,
+		}
+
+		for i := 0; i < file.Pieces; i++ {
+			newPieceInfo.SerialPieces = append(newPieceInfo.SerialPieces, uint64(i))
+		}
+
+		isPeer.files[file.Hash] = newPieceInfo
+	}
+
+	peers := s.hashPeers[file.Hash]
+	peers = append(peers, isPeer) // добавляем в мапу файловых хешей
+	s.hashPeers[file.Hash] = peers
+
+	return &empty.Empty{}, nil
 }
 
 func (s *Server) GetPeers(ctx context.Context, request *api.GetPeersRequest) (*api.ListPeers, error) {
