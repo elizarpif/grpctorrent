@@ -63,6 +63,7 @@ message Piece {
 
 message GetPieceRequest {
   uint64 serial_number = 1;
+  string hash = 2;
 }
 
 service Peer {
