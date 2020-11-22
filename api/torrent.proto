@@ -51,7 +51,7 @@ message FileInfo {
 }
 
 service Tracker {
-  rpc GetFileInfo(File) returns (FileInfo);
+  rpc GetFileInfo(DownloadFileRequest) returns (FileInfo);
   rpc Upload (UploadFileRequest) returns (google.protobuf.Empty); // загрузить торрент-файл на сервер
   rpc GetPeers (GetPeersRequest) returns (ListPeers); // заявить о себе и получить список пиров
   rpc PostPiecesInfo (PiecesInfo) returns (google.protobuf.Empty); // сообщить информацию о файловых кусочках которые клиент уже скачал и раздает
@@ -101,7 +101,7 @@ service Peer {
     };
   }
 
-  rpc Download(DownloadFileRequest) returns (FileInfo){
+  rpc Download(File) returns (FileInfo){
     option (google.api.http) = {
       post: "/download"
       body: "*"
