@@ -18,7 +18,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/apiFileInfo"
+              "$ref": "#/definitions/apiDownloadFileResponse"
             }
           },
           "default": {
@@ -126,6 +126,14 @@
       "type": "object",
       "properties": {
         "hash": {
+          "type": "string"
+        }
+      }
+    },
+    "apiDownloadFileResponse": {
+      "type": "object",
+      "properties": {
+        "file_path": {
           "type": "string"
         }
       }

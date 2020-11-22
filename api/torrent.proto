@@ -74,6 +74,10 @@ message File {
   string name = 1;
 }
 
+message DownloadFileResponse {
+  string file_path = 1;
+}
+
 service Peer {
   rpc GetPiece(GetPieceRequest) returns (Piece);
 
@@ -90,7 +94,7 @@ service Peer {
     };
   }
 
-  rpc Download(DownloadFileRequest) returns (FileInfo){
+  rpc Download(DownloadFileRequest) returns (DownloadFileResponse){
     option (google.api.http) = {
       post: "/download"
       body: "*"
