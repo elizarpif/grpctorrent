@@ -71,7 +71,7 @@ service Tracker {
 }
 
 message Piece {
-  string payload = 1; // кусочек
+  bytes payload = 1; // кусочек
   uint64 serial_number = 2; // номер кусочка
 }
 

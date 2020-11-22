@@ -255,7 +255,8 @@
       "type": "object",
       "properties": {
         "payload": {
-          "type": "string"
+          "type": "string",
+          "format": "byte"
         },
         "serial_number": {
           "type": "string",
