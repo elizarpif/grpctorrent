@@ -37,10 +37,6 @@ message PieceInfo {
   uint64 serial = 2; // кусочек который скачан и раздается
 }
 
-message AllPiecesDownload {
-  string hash = 1;
-}
-
 message DownloadFileRequest {
   string hash = 1;
 }
