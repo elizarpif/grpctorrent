@@ -38,7 +38,20 @@ message PiecesInfo {
   bool all_file = 3; // весь файл или нет
 }
 
+message File {
+  string name = 1;
+}
+
+message FileInfo {
+  string name = 1; // имя файла
+  uint64 piece_length = 2; // длина кусочка
+  uint64 pieces = 3; // всего кусочков
+  uint64 length = 4; // длина файла
+  string hash = 5 ; // хэш файла
+}
+
 service Tracker {
+  rpc GetFileInfo(File) returns (FileInfo);
   rpc Upload (UploadFileRequest) returns (google.protobuf.Empty); // загрузить торрент-файл на сервер
   rpc GetPeers (GetPeersRequest) returns (ListPeers); // заявить о себе и получить список пиров
   rpc PostPiecesInfo (PiecesInfo) returns (google.protobuf.Empty); // сообщить информацию о файловых кусочках которые клиент уже скачал и раздает
@@ -68,20 +81,8 @@ message GetPieceRequest {
   string hash = 2;
 }
 
-message File {
-  string name = 1;
-}
-
 message DownloadFileRequest {
   string hash = 1;
-}
-
-message FileInfo {
-  string name = 1; // имя файла
-  uint64 piece_length = 2; // длина кусочка
-  uint64 pieces = 3; // всего кусочков
-  uint64 length = 4; // длина файла
-  string hash = 5 ; // хэш файла
 }
 
 service Peer {
