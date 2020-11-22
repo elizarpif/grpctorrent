@@ -34,7 +34,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/apiFile"
+              "$ref": "#/definitions/apiDownloadFileRequest"
             }
           }
         ],
@@ -119,6 +119,14 @@
             "type": "string",
             "format": "uint64"
           }
+        }
+      }
+    },
+    "apiDownloadFileRequest": {
+      "type": "object",
+      "properties": {
+        "hash": {
+          "type": "string"
         }
       }
     },

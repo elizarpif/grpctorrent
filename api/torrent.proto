@@ -32,14 +32,17 @@ message ListPeers {
   repeated Peer peers = 2;
 }
 
-message PiecesInfo {
+message PieceInfo {
   string hash_file = 1;
-  repeated uint64 serial_pieces = 2; // кусочки которые уже скачаны и раздаются
-  bool all_file = 3; // весь файл или нет
+  uint64 serial = 2; // кусочек который скачан и раздается
 }
 
-message File {
-  string name = 1;
+message AllPiecesDownload {
+  string hash = 1;
+}
+
+message DownloadFileRequest {
+  string hash = 1;
 }
 
 message FileInfo {
@@ -54,22 +57,9 @@ service Tracker {
   rpc GetFileInfo(DownloadFileRequest) returns (FileInfo);
   rpc Upload (UploadFileRequest) returns (google.protobuf.Empty); // загрузить торрент-файл на сервер
   rpc GetPeers (GetPeersRequest) returns (ListPeers); // заявить о себе и получить список пиров
-  rpc PostPiecesInfo (PiecesInfo) returns (google.protobuf.Empty); // сообщить информацию о файловых кусочках которые клиент уже скачал и раздает
+  rpc PostPieceInfo (PieceInfo) returns (google.protobuf.Empty); // сообщить информацию о файловых кусочках которые клиент уже скачал и раздает
+  rpc PostFileInfo(AllPiecesDownload) returns (google.protobuf.Empty); // сообщить что файл полностью скачан
 }
-
-//enum MessageType {
-//  INTERESTED = 0;
-//  NOT_INTERSTED = 1;
-//  HAVE = 2;
-//  PIECE = 3;
-//  CANCEL = 4;
-//}
-//
-//message TorrentMessage {
-//  uint64 length = 1; // длина
-//  MessageType type = 2; // тип сообщения
-//  string payload = 3;
-//}
 
 message Piece {
   string payload = 1; // кусочек
@@ -81,8 +71,8 @@ message GetPieceRequest {
   string hash = 2;
 }
 
-message DownloadFileRequest {
-  string hash = 1;
+message File {
+  string name = 1;
 }
 
 service Peer {
@@ -101,7 +91,7 @@ service Peer {
     };
   }
 
-  rpc Download(File) returns (FileInfo){
+  rpc Download(DownloadFileRequest) returns (FileInfo){
     option (google.api.http) = {
       post: "/download"
       body: "*"
