@@ -58,7 +58,6 @@ service Tracker {
   rpc Upload (UploadFileRequest) returns (google.protobuf.Empty); // загрузить торрент-файл на сервер
   rpc GetPeers (GetPeersRequest) returns (ListPeers); // заявить о себе и получить список пиров
   rpc PostPieceInfo (PieceInfo) returns (google.protobuf.Empty); // сообщить информацию о файловых кусочках которые клиент уже скачал и раздает
-  rpc PostFileInfo(AllPiecesDownload) returns (google.protobuf.Empty); // сообщить что файл полностью скачан
 }
 
 message Piece {

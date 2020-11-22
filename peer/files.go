@@ -62,6 +62,10 @@ func splitFile(content []byte) (res map[uint]*api.Piece, length uint64) {
 	return mapPiece, uint64(pieceLen)
 }
 
+func getHash(fContent []byte) string{
+	hash := md5.Sum(fContent)
+	return hex.EncodeToString(hash[:])
+}
 //nolint:gosec // for hash
 // чтение файла и создание торрент-файла с последующей загрузкой
 func newFile(name string) (*file, error) {
@@ -70,13 +74,11 @@ func newFile(name string) (*file, error) {
 		return nil, err
 	}
 
-	hash := md5.Sum(fContent)
-
 	pMap, pLen := splitFile(fContent)
 	f := &file{
 		length:    uint64(len(fContent)),
 		name:      name,
-		hash:      hex.EncodeToString(hash[:]),
+		hash:      getHash(fContent),
 		piecesMap: pMap,
 		piecesLen: pLen,
 		allPieces: true,

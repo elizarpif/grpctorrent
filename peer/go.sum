@@ -17,6 +17,8 @@ github.com/elizarpif/grpctorrent/api v0.0.0-20201122130537-38b0934e3d3f h1:HfL0r
 github.com/elizarpif/grpctorrent/api v0.0.0-20201122130537-38b0934e3d3f/go.mod h1:LqjN2UlkLceHTWmKATzpXGHaAzXZgghPBCT+YZ53SQM=
 github.com/elizarpif/grpctorrent/api v0.0.0-20201122131751-19d73f529125 h1:wb/yVMaVrgJyH15CcuTY16d7vcrKPFnqlos3UKdwxz4=
 github.com/elizarpif/grpctorrent/api v0.0.0-20201122131751-19d73f529125/go.mod h1:LqjN2UlkLceHTWmKATzpXGHaAzXZgghPBCT+YZ53SQM=
+github.com/elizarpif/grpctorrent/api v0.0.0-20201122162400-0e6b6866ccc8 h1:qcNgHrbfpfhysqIDpNzUvGClMXR/6GCzCYaJRD8ApRo=
+github.com/elizarpif/grpctorrent/api v0.0.0-20201122162400-0e6b6866ccc8/go.mod h1:LqjN2UlkLceHTWmKATzpXGHaAzXZgghPBCT+YZ53SQM=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1mIlRU8Am5FuJP05cCM98=

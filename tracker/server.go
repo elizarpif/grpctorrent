@@ -14,24 +14,36 @@ import (
 type Peer struct {
 	addr  string
 	id    uuid.UUID
-	files map[string]*api.PiecesInfo
+	files map[string]*availableFile // мапа хэш - колиечство доступных кусков
+}
+
+type availableFile struct {
+	hash   string        // хэш файла
+	pieces map[uint]bool // доступные куски для скачивания 
+}
+
+func newAvailableFile(hash string, pieceNum uint) *availableFile {
+	pieces := make(map[uint]bool)
+	pieces[pieceNum] = true
+
+	return &availableFile{hash: hash, pieces: pieces}
 }
 
 func NewPeer(addr string, id uuid.UUID) *Peer {
-	return &Peer{addr: addr, id: id, files: make(map[string]*api.PiecesInfo)}
+	return &Peer{addr: addr, id: id, files: make(map[string]*availableFile)}
 }
 
 type Server struct {
-	hashPeers map[string][]*Peer // хэш файла к пирам
-	hashFiles map[string]*api.FileInfo
-	peers     map[uuid.UUID]*Peer // пиры по id
+	hashPeers map[string][]*Peer       // хэш файла к пирам
+	hashFiles map[string]*api.FileInfo // хэш файла к файлу
+	peers     map[string]*Peer         // пиры по address
 }
 
 func NewServer() *Server {
 	return &Server{
 		hashPeers: make(map[string][]*Peer),
 		hashFiles: make(map[string]*api.FileInfo),
-		peers:     make(map[uuid.UUID]*Peer),
+		peers:     make(map[string]*Peer),
 	}
 }
 
@@ -59,18 +71,14 @@ func getPeerAddrFromMetadata(ctx context.Context) (string, error) {
 }
 
 func (s *Server) addPeer(ctx context.Context, clientID uuid.UUID) (*Peer, error) {
-	isPeer, exists := s.peers[clientID]
-	// если такого пира не существует, то добавим в список
-	if !exists {
-		addr, err := getPeerAddrFromMetadata(ctx)
-		if err != nil {
-			getLogger(ctx).WithError(err).Error("cannot get peer from context")
-			return nil, errors.New("cannot get peer from context")
-		}
-
-		isPeer = NewPeer(addr, clientID)
-		s.peers[clientID] = isPeer // добавляем в мапу пиров
+	addr, err := getPeerAddrFromMetadata(ctx)
+	if err != nil {
+		getLogger(ctx).WithError(err).Error("cannot get peer from context")
+		return nil, errors.New("cannot get peer from context")
 	}
+
+	isPeer := NewPeer(addr, clientID)
+	s.peers[addr] = isPeer // добавляем в мапу пиров
 
 	return isPeer, nil
 }
@@ -94,13 +102,13 @@ func (s *Server) Upload(ctx context.Context, file *api.UploadFileRequest) (*empt
 		Hash:        file.Hash,
 	}
 
-	newPieceInfo := &api.PiecesInfo{
-		HashFile: file.Hash,
-		AllFile:  true,
+	newPieceInfo := &availableFile{
+		hash: file.Hash,
+		pieces: make(map[uint]bool),
 	}
 
 	for i := 0; i < int(file.Pieces); i++ {
-		newPieceInfo.SerialPieces = append(newPieceInfo.SerialPieces, uint64(i))
+		newPieceInfo.pieces[uint(i)] = true
 	}
 
 	// добавляем информацию о загруженном файле к пиру
@@ -117,16 +125,13 @@ func (s *Server) Upload(ctx context.Context, file *api.UploadFileRequest) (*empt
 func (s *Server) GetPeers(ctx context.Context, request *api.GetPeersRequest) (*api.ListPeers, error) {
 	peerID := uuid.MustParse(request.PeerId)
 
-	// если такого пира не существует, то добавим в список
-	if _, exists := s.peers[peerID]; !exists {
-		addr, err := getPeerAddrFromMetadata(ctx)
-		if err != nil{
-			getLogger(ctx).WithError(err).Error("cannot get peer from context")
-			return nil, errors.New("cannot get peer from context")
-		}
-
-		s.peers[peerID] = NewPeer(addr, peerID)
+	addr, err := getPeerAddrFromMetadata(ctx)
+	if err != nil {
+		getLogger(ctx).WithError(err).Error("cannot get peer from context")
+		return nil, errors.New("cannot get peer from context")
 	}
+
+	s.peers[addr] = NewPeer(addr, peerID)
 
 	resp := &api.ListPeers{}
 
@@ -142,13 +147,60 @@ func (s *Server) GetPeers(ctx context.Context, request *api.GetPeersRequest) (*a
 			return nil, errors.New("files in peer doesnt exist!")
 		}
 
-		respPeer.SerialPieces = is.SerialPieces
+		for k := range is.pieces {
+			respPeer.SerialPieces = append(respPeer.SerialPieces, uint64(k))
+		}
+
 		resp.Peers = append(resp.Peers, respPeer)
 	}
 
 	return resp, nil
 }
 
-func (s *Server) PostPiecesInfo(ctx context.Context, info *api.PiecesInfo) (*empty.Empty, error) {
+func (s *Server) PostPieceInfo(ctx context.Context, info *api.PieceInfo) (*empty.Empty, error) {
+	addr, err := getPeerAddrFromMetadata(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// получаем список пиров по хешу файла
+	peers, ok := s.hashPeers[info.HashFile]
+	if !ok {
+		return nil, errors.New("hash doesnt exists")
+	}
+
+	// ищем текущего пира в списке пиров по хешу
+	peer := findPeer(peers, addr)
+
+	// если его нет...
+	if peer == nil {
+		// получаем текущего пира из мапы всех пиров
+		currentPeer, ok := s.peers[addr]
+		if !ok {
+			return nil, errors.New("peer doesnt exists")
+		}
+
+		currentPeer.files[info.HashFile] = newAvailableFile(info.HashFile, uint(info.Serial))
+		s.hashPeers[info.HashFile] = append(s.hashPeers[info.HashFile], currentPeer)
+	} else {
+		peer.files[info.HashFile] = newAvailableFile(info.HashFile, uint(info.Serial))
+	}
+
+	// check is file piece added
+
+	return &empty.Empty{}, nil
+}
+
+func findPeer(peers []*Peer, addr string) *Peer {
+	for _, p := range peers {
+		if p.addr == addr {
+			return p
+		}
+	}
+
+	return nil
+}
+
+func (s *Server) PostFileInfo(ctx context.Context, download *api.AllPiecesDownload) (*empty.Empty, error) {
 	panic("implement me")
 }

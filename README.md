@@ -18,3 +18,59 @@
 
 ### peer
 "Торрент-клиент" 
+
+
+## Пример работы
+
+- запускаем сервер
+```shell script
+cd tracker
+go build .
+./tracker
+```
+- запускаем 1 клиента (тот, который загрузит файл)
+```shell script
+cd peer
+go build .
+./peer -http=8002 -grpc=9002
+```
+
+- запускам 2 клиента (тот, который скачает файл у 1 клиента)
+```shell script
+cd peer
+go build .
+./peer -http=8000 -grpc=9000
+```
+
+- загружаем файл на сервер
+```shell script
+curl -d "{\"name\":\"/home/space/5 sem/networks/grpctorrent/peer/some.txt\"}" -X POST http://localhost:8002/upload | jq
+```
+
+- спрашиваем информацию о файле
+```shell script
+curl http://localhost:8002/files/some.txt | jq
+```
+```json
+{
+  "name": "some.txt",
+  "piece_length": "1",
+  "pieces": "24",
+  "length": "24",
+  "hash": "9702842ac5824617babda6a32791ac2f"
+}
+```
+
+- скачиваем файл
+```shell script
+curl -d "{\"hash\":\"9702842ac5824617babda6a32791ac2f\"}" -X POST http://localhost:8000/download | jq
+```
+```json
+{
+  "name": "some.txt",
+  "piece_length": "1",
+  "pieces": "24",
+  "length": "24",
+  "hash": "9702842ac5824617babda6a32791ac2f"
+}
+```

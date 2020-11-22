@@ -68,21 +68,29 @@ func (p *Peer) UploadFile(ctx context.Context, f *api.File) (*empty.Empty, error
 
 func (p *Peer) GetLocalFileInfo(ctx context.Context, f *api.File) (*api.FileInfo, error) {
 	is, ok := p.haveFiles[f.Name]
-	if !ok {
-		return nil, status.Error(codes.NotFound, "client doesn't have file")
+	if ok {
+		return &api.FileInfo{
+			Name:        f.Name,
+			PieceLength: is.piecesLen,
+			Pieces:      uint64(len(is.piecesMap)),
+			Length:      is.length,
+			Hash:        is.hash,
+		}, nil
 	}
 
-	return &api.FileInfo{
-		Name:        f.Name,
-		PieceLength: is.piecesLen,
-		Pieces:      uint64(len(is.piecesMap)),
-		Length:      is.length,
-		Hash:        is.hash,
-	}, nil
+	info, err := p.tracker.GetFileInfo(ctx, &api.DownloadFileRequest{Hash: getHash([]byte(f.Name))})
+	if err != nil {
+		getLogger(ctx).WithError(err).Error("cannot find file on server")
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+
+	return info, nil
 }
 
-func (p *Peer) Download(ctx context.Context, f *api.File) (*api.FileInfo, error) {
-	hashStr := f.Name
+// TODO use goroutines
+// TODO add logger in middleware grpc
+func (p *Peer) Download(ctx context.Context, f *api.DownloadFileRequest) (*api.FileInfo, error) {
+	hashStr := f.Hash
 
 	info, err := p.tracker.GetFileInfo(ctx, &api.DownloadFileRequest{Hash: hashStr})
 	if err != nil {
@@ -109,8 +117,10 @@ func (p *Peer) Download(ctx context.Context, f *api.File) (*api.FileInfo, error)
 		peerAddrPositions[p.Address] = p.SerialPieces
 	}
 
+	// пройтись по списку доступных пиров и скачать у них доступные файлы
 	for anotherPeerAddr, positions := range peerAddrPositions {
 		for _, position := range positions {
+			// если такой кусок еще не загружен
 			if !isPieceDownload[position] {
 
 				opts := []grpc.DialOption{grpc.WithInsecure()}
@@ -127,6 +137,14 @@ func (p *Peer) Download(ctx context.Context, f *api.File) (*api.FileInfo, error)
 				if err == nil {
 					piecesMap[uint(position)] = piece
 					isPieceDownload[position] = true
+
+					_, err := p.tracker.PostPieceInfo(ctx, &api.PieceInfo{
+						HashFile: hashStr,
+						Serial:   position,
+					})
+					if err != nil {
+						getLogger(ctx).WithError(err).Error("cannot post piece info")
+					}
 				} else {
 					getLogger(ctx).WithError(err).WithField("remote_peer", anotherPeerAddr).Error("cannot get piece")
 				}
@@ -142,7 +160,7 @@ func (p *Peer) Download(ctx context.Context, f *api.File) (*api.FileInfo, error)
 		}
 	}
 
-	file := file{
+	file := &file{
 		name:      info.Name,
 		hash:      hashStr,
 		allPieces: isAllFileDownload,
@@ -156,6 +174,8 @@ func (p *Peer) Download(ctx context.Context, f *api.File) (*api.FileInfo, error)
 		getLogger(ctx).Error("cannot merge file")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
+
+	p.haveFiles[file.hash] = file
 
 	return &api.FileInfo{
 		Name:        info.Name,
