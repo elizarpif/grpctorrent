@@ -90,7 +90,13 @@ service Peer {
     };
   }
 
-  rpc GetFileInfo(File) returns (FileInfo){
+  rpc GetLocalFileInfo(File) returns (FileInfo){
+    option (google.api.http) = {
+      get: "/files/{name}"
+    };
+  }
+
+  rpc Download(File) returns (FileInfo){
     option (google.api.http) = {
       get: "/files/{name}"
     };

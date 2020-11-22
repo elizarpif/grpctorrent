@@ -652,19 +652,24 @@ var file_torrent_proto_rawDesc = []byte{
 	0x69, 0x65, 0x63, 0x65, 0x73, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x0f, 0x2e, 0x61, 0x70, 0x69, 0x2e,
 	0x50, 0x69, 0x65, 0x63, 0x65, 0x73, 0x49, 0x6e, 0x66, 0x6f, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f,
 	0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70,
-	0x74, 0x79, 0x32, 0xb9, 0x01, 0x0a, 0x04, 0x50, 0x65, 0x65, 0x72, 0x12, 0x2c, 0x0a, 0x08, 0x47,
+	0x74, 0x79, 0x32, 0xfb, 0x01, 0x0a, 0x04, 0x50, 0x65, 0x65, 0x72, 0x12, 0x2c, 0x0a, 0x08, 0x47,
 	0x65, 0x74, 0x50, 0x69, 0x65, 0x63, 0x65, 0x12, 0x14, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x47, 0x65,
 	0x74, 0x50, 0x69, 0x65, 0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x0a, 0x2e,
 	0x61, 0x70, 0x69, 0x2e, 0x50, 0x69, 0x65, 0x63, 0x65, 0x12, 0x43, 0x0a, 0x0a, 0x55, 0x70, 0x6c,
 	0x6f, 0x61, 0x64, 0x46, 0x69, 0x6c, 0x65, 0x12, 0x09, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x46, 0x69,
 	0x6c, 0x65, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74,
 	0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22, 0x12, 0x82, 0xd3, 0xe4, 0x93,
-	0x02, 0x0c, 0x22, 0x07, 0x2f, 0x75, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x3a, 0x01, 0x2a, 0x12, 0x3e,
-	0x0a, 0x0b, 0x47, 0x65, 0x74, 0x46, 0x69, 0x6c, 0x65, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x09, 0x2e,
-	0x61, 0x70, 0x69, 0x2e, 0x46, 0x69, 0x6c, 0x65, 0x1a, 0x0d, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x46,
-	0x69, 0x6c, 0x65, 0x49, 0x6e, 0x66, 0x6f, 0x22, 0x15, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x0f, 0x12,
-	0x0d, 0x2f, 0x66, 0x69, 0x6c, 0x65, 0x73, 0x2f, 0x7b, 0x6e, 0x61, 0x6d, 0x65, 0x7d, 0x42, 0x07,
-	0x5a, 0x05, 0x3a, 0x3b, 0x61, 0x70, 0x69, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x02, 0x0c, 0x22, 0x07, 0x2f, 0x75, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x3a, 0x01, 0x2a, 0x12, 0x43,
+	0x0a, 0x10, 0x47, 0x65, 0x74, 0x4c, 0x6f, 0x63, 0x61, 0x6c, 0x46, 0x69, 0x6c, 0x65, 0x49, 0x6e,
+	0x66, 0x6f, 0x12, 0x09, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x46, 0x69, 0x6c, 0x65, 0x1a, 0x0d, 0x2e,
+	0x61, 0x70, 0x69, 0x2e, 0x46, 0x69, 0x6c, 0x65, 0x49, 0x6e, 0x66, 0x6f, 0x22, 0x15, 0x82, 0xd3,
+	0xe4, 0x93, 0x02, 0x0f, 0x12, 0x0d, 0x2f, 0x66, 0x69, 0x6c, 0x65, 0x73, 0x2f, 0x7b, 0x6e, 0x61,
+	0x6d, 0x65, 0x7d, 0x12, 0x3b, 0x0a, 0x08, 0x44, 0x6f, 0x77, 0x6e, 0x6c, 0x6f, 0x61, 0x64, 0x12,
+	0x09, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x46, 0x69, 0x6c, 0x65, 0x1a, 0x0d, 0x2e, 0x61, 0x70, 0x69,
+	0x2e, 0x46, 0x69, 0x6c, 0x65, 0x49, 0x6e, 0x66, 0x6f, 0x22, 0x15, 0x82, 0xd3, 0xe4, 0x93, 0x02,
+	0x0f, 0x12, 0x0d, 0x2f, 0x66, 0x69, 0x6c, 0x65, 0x73, 0x2f, 0x7b, 0x6e, 0x61, 0x6d, 0x65, 0x7d,
+	0x42, 0x07, 0x5a, 0x05, 0x3a, 0x3b, 0x61, 0x70, 0x69, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x33,
 }
 
 var (
@@ -699,15 +704,17 @@ var file_torrent_proto_depIdxs = []int32{
 	3, // 3: api.Tracker.PostPiecesInfo:input_type -> api.PiecesInfo
 	5, // 4: api.Peer.GetPiece:input_type -> api.GetPieceRequest
 	6, // 5: api.Peer.UploadFile:input_type -> api.File
-	6, // 6: api.Peer.GetFileInfo:input_type -> api.File
-	9, // 7: api.Tracker.Upload:output_type -> google.protobuf.Empty
-	2, // 8: api.Tracker.GetPeers:output_type -> api.ListPeers
-	9, // 9: api.Tracker.PostPiecesInfo:output_type -> google.protobuf.Empty
-	4, // 10: api.Peer.GetPiece:output_type -> api.Piece
-	9, // 11: api.Peer.UploadFile:output_type -> google.protobuf.Empty
-	7, // 12: api.Peer.GetFileInfo:output_type -> api.FileInfo
-	7, // [7:13] is the sub-list for method output_type
-	1, // [1:7] is the sub-list for method input_type
+	6, // 6: api.Peer.GetLocalFileInfo:input_type -> api.File
+	6, // 7: api.Peer.Download:input_type -> api.File
+	9, // 8: api.Tracker.Upload:output_type -> google.protobuf.Empty
+	2, // 9: api.Tracker.GetPeers:output_type -> api.ListPeers
+	9, // 10: api.Tracker.PostPiecesInfo:output_type -> google.protobuf.Empty
+	4, // 11: api.Peer.GetPiece:output_type -> api.Piece
+	9, // 12: api.Peer.UploadFile:output_type -> google.protobuf.Empty
+	7, // 13: api.Peer.GetLocalFileInfo:output_type -> api.FileInfo
+	7, // 14: api.Peer.Download:output_type -> api.FileInfo
+	8, // [8:15] is the sub-list for method output_type
+	1, // [1:8] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
 	1, // [1:1] is the sub-list for extension extendee
 	0, // [0:1] is the sub-list for field type_name
@@ -1006,7 +1013,8 @@ var _Tracker_serviceDesc = grpc.ServiceDesc{
 type PeerClient interface {
 	GetPiece(ctx context.Context, in *GetPieceRequest, opts ...grpc.CallOption) (*Piece, error)
 	UploadFile(ctx context.Context, in *File, opts ...grpc.CallOption) (*empty.Empty, error)
-	GetFileInfo(ctx context.Context, in *File, opts ...grpc.CallOption) (*FileInfo, error)
+	GetLocalFileInfo(ctx context.Context, in *File, opts ...grpc.CallOption) (*FileInfo, error)
+	Download(ctx context.Context, in *File, opts ...grpc.CallOption) (*FileInfo, error)
 }
 
 type peerClient struct {
@@ -1035,9 +1043,18 @@ func (c *peerClient) UploadFile(ctx context.Context, in *File, opts ...grpc.Call
 	return out, nil
 }
 
-func (c *peerClient) GetFileInfo(ctx context.Context, in *File, opts ...grpc.CallOption) (*FileInfo, error) {
+func (c *peerClient) GetLocalFileInfo(ctx context.Context, in *File, opts ...grpc.CallOption) (*FileInfo, error) {
 	out := new(FileInfo)
-	err := c.cc.Invoke(ctx, "/api.Peer/GetFileInfo", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.Peer/GetLocalFileInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *peerClient) Download(ctx context.Context, in *File, opts ...grpc.CallOption) (*FileInfo, error) {
+	out := new(FileInfo)
+	err := c.cc.Invoke(ctx, "/api.Peer/Download", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1048,7 +1065,8 @@ func (c *peerClient) GetFileInfo(ctx context.Context, in *File, opts ...grpc.Cal
 type PeerServer interface {
 	GetPiece(context.Context, *GetPieceRequest) (*Piece, error)
 	UploadFile(context.Context, *File) (*empty.Empty, error)
-	GetFileInfo(context.Context, *File) (*FileInfo, error)
+	GetLocalFileInfo(context.Context, *File) (*FileInfo, error)
+	Download(context.Context, *File) (*FileInfo, error)
 }
 
 // UnimplementedPeerServer can be embedded to have forward compatible implementations.
@@ -1061,8 +1079,11 @@ func (*UnimplementedPeerServer) GetPiece(context.Context, *GetPieceRequest) (*Pi
 func (*UnimplementedPeerServer) UploadFile(context.Context, *File) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UploadFile not implemented")
 }
-func (*UnimplementedPeerServer) GetFileInfo(context.Context, *File) (*FileInfo, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetFileInfo not implemented")
+func (*UnimplementedPeerServer) GetLocalFileInfo(context.Context, *File) (*FileInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLocalFileInfo not implemented")
+}
+func (*UnimplementedPeerServer) Download(context.Context, *File) (*FileInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Download not implemented")
 }
 
 func RegisterPeerServer(s *grpc.Server, srv PeerServer) {
@@ -1105,20 +1126,38 @@ func _Peer_UploadFile_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Peer_GetFileInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Peer_GetLocalFileInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(File)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PeerServer).GetFileInfo(ctx, in)
+		return srv.(PeerServer).GetLocalFileInfo(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Peer/GetFileInfo",
+		FullMethod: "/api.Peer/GetLocalFileInfo",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PeerServer).GetFileInfo(ctx, req.(*File))
+		return srv.(PeerServer).GetLocalFileInfo(ctx, req.(*File))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Peer_Download_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(File)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PeerServer).Download(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Peer/Download",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PeerServer).Download(ctx, req.(*File))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1136,8 +1175,12 @@ var _Peer_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Peer_UploadFile_Handler,
 		},
 		{
-			MethodName: "GetFileInfo",
-			Handler:    _Peer_GetFileInfo_Handler,
+			MethodName: "GetLocalFileInfo",
+			Handler:    _Peer_GetLocalFileInfo_Handler,
+		},
+		{
+			MethodName: "Download",
+			Handler:    _Peer_Download_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
