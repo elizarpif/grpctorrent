@@ -4,6 +4,7 @@ package api;
 option go_package = ":;api";
 
 import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
 
 message UploadFileRequest {
   string client_id = 1;
@@ -67,6 +68,31 @@ message GetPieceRequest {
   string hash = 2;
 }
 
+message File {
+  string name = 1;
+}
+
+message FileInfo {
+  string name = 1; // имя файла
+  uint64 piece_length = 2; // длина кусочка
+  uint64 pieces = 3; // всего кусочков
+  uint64 length = 4; // длина файла
+  string hash = 5 ; // хэш файла
+}
+
 service Peer {
   rpc GetPiece(GetPieceRequest) returns (Piece);
+
+  rpc UploadFile(File) returns (google.protobuf.Empty){
+    option (google.api.http) = {
+      post: "/upload"
+      body: "*"
+    };
+  }
+
+  rpc GetFileInfo(File) returns (FileInfo){
+    option (google.api.http) = {
+      get: "/files/{name}"
+    };
+  }
 }

@@ -10,18 +10,74 @@
   "produces": [
     "application/json"
   ],
-  "paths": {},
+  "paths": {
+    "/files/{name}": {
+      "get": {
+        "operationId": "Peer_GetFileInfo",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiFileInfo"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Peer"
+        ]
+      }
+    },
+    "/upload": {
+      "post": {
+        "operationId": "Peer_UploadFile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiFile"
+            }
+          }
+        ],
+        "tags": [
+          "Peer"
+        ]
+      }
+    }
+  },
   "definitions": {
     "ListPeersPeer": {
       "type": "object",
       "properties": {
-        "ip": {
-          "type": "string"
-        },
-        "port": {
-          "type": "string",
-          "format": "uint64"
-        },
         "address": {
           "type": "string"
         },
@@ -31,6 +87,37 @@
             "type": "string",
             "format": "uint64"
           }
+        }
+      }
+    },
+    "apiFile": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "apiFileInfo": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "piece_length": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "pieces": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "length": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "hash": {
+          "type": "string"
         }
       }
     },
