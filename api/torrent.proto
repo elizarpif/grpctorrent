@@ -72,6 +72,10 @@ message File {
   string name = 1;
 }
 
+message DownloadFileRequest {
+  string hash = 1;
+}
+
 message FileInfo {
   string name = 1; // имя файла
   uint64 piece_length = 2; // длина кусочка
@@ -96,9 +100,10 @@ service Peer {
     };
   }
 
-  rpc Download(File) returns (FileInfo){
+  rpc Download(DownloadFileRequest) returns (FileInfo){
     option (google.api.http) = {
-      get: "/files/{name}"
+      post: "/download"
+      body: "*"
     };
   }
 }

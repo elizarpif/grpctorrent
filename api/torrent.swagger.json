@@ -11,9 +11,41 @@
     "application/json"
   ],
   "paths": {
+    "/download": {
+      "post": {
+        "operationId": "Peer_Download",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiFileInfo"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiDownloadFileRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Peer"
+        ]
+      }
+    },
     "/files/{name}": {
       "get": {
-        "operationId": "Peer_Download",
+        "operationId": "Peer_GetLocalFileInfo",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -87,6 +119,14 @@
             "type": "string",
             "format": "uint64"
           }
+        }
+      }
+    },
+    "apiDownloadFileRequest": {
+      "type": "object",
+      "properties": {
+        "hash": {
+          "type": "string"
         }
       }
     },
