@@ -12,8 +12,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type logger struct {
+}
+
 func setContext() context.Context {
-	return context.WithValue(context.Background(), "logger", newLogger())
+	return context.WithValue(context.Background(), logger{}, newLogger())
 }
 
 func newLogger() *logrus.Logger {
@@ -26,7 +29,7 @@ func newLogger() *logrus.Logger {
 }
 
 func getLogger(ctx context.Context) *logrus.Logger {
-	value := ctx.Value("logger")
+	value := ctx.Value(logger{})
 	log, ok := value.(*logrus.Logger)
 	if !ok {
 		log = newLogger()
@@ -52,8 +55,9 @@ func main() {
 	defer grpcServer.GracefulStop()
 
 	ctx := setContext()
+
 	server, err := NewPeer(ctx, trackerAddr)
-	if err != nil{
+	if err != nil {
 		logger.WithError(err).Fatal("cannot create peer")
 	}
 
@@ -67,7 +71,7 @@ func main() {
 
 	group.Go(func() error {
 		err = server.UploadFileToTracker(ctx, "some.txt")
-		if err != nil{
+		if err != nil {
 			logger.WithError(err).Fatal()
 		}
 		return err

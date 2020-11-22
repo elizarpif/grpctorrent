@@ -1,3 +1,4 @@
+//nolint:gosec // for hash md5 can be weak
 package main
 
 import (
@@ -41,7 +42,7 @@ func getPieceLength(length int) int {
 }
 
 // деление файла на куски
-func splitFile(content []byte) (map[uint]*api.Piece, uint64) {
+func splitFile(content []byte) (res map[uint]*api.Piece, length uint64) {
 	pieceLen := getPieceLength(len(content))
 
 	var serial uint64 = 0
@@ -50,7 +51,7 @@ func splitFile(content []byte) (map[uint]*api.Piece, uint64) {
 
 	for i := 0; i < len(content); i += pieceLen {
 		mapPiece[uint(i)] = &api.Piece{
-			Payload:      string(content[i:i+pieceLen]),
+			Payload:      string(content[i : i+pieceLen]),
 			SerialNumber: serial,
 		}
 
@@ -60,6 +61,7 @@ func splitFile(content []byte) (map[uint]*api.Piece, uint64) {
 	return mapPiece, uint64(pieceLen)
 }
 
+//nolint:gosec // for hash
 // чтение файла и создание торрент-файла с последующей загрузкой
 func newFile(name string) (*file, error) {
 	fContent, err := ioutil.ReadFile(name)
@@ -106,6 +108,7 @@ func (f *file) write(bytes []byte) error {
 	return err
 }
 
+//nolint:gosec // for hash
 // склеивание файла из кусочков
 func (f *file) MergePieces(ctx context.Context) error {
 	log := getLogger(ctx)
