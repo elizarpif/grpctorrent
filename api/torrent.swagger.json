@@ -43,9 +43,61 @@
         ]
       }
     },
+    "/files": {
+      "get": {
+        "operationId": "Tracker_GetAvailableFiles",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiListFiles"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "Tracker"
+        ]
+      }
+    },
+    "/files/{hash}": {
+      "get": {
+        "operationId": "Tracker_GetFileInfo",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiFileInfo"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "hash",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Tracker"
+        ]
+      }
+    },
     "/files/{name}": {
       "get": {
-        "operationId": "Peer_GetLocalFileInfo",
+        "operationId": "Peer_GetFileInfo",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -166,6 +218,21 @@
         },
         "hash": {
           "type": "string"
+        }
+      }
+    },
+    "apiListFiles": {
+      "type": "object",
+      "properties": {
+        "count": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiFileInfo"
+          }
         }
       }
     },

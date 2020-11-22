@@ -15,6 +15,7 @@ import (
 
 	"github.com/golang/protobuf/descriptor"
 	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/grpc-ecosystem/grpc-gateway/utilities"
 	"google.golang.org/grpc"
@@ -32,6 +33,78 @@ var _ = runtime.String
 var _ = utilities.NewDoubleArray
 var _ = descriptor.ForMessage
 var _ = metadata.Join
+
+func request_Tracker_GetAvailableFiles_0(ctx context.Context, marshaler runtime.Marshaler, client TrackerClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq empty.Empty
+	var metadata runtime.ServerMetadata
+
+	msg, err := client.GetAvailableFiles(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_Tracker_GetAvailableFiles_0(ctx context.Context, marshaler runtime.Marshaler, server TrackerServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq empty.Empty
+	var metadata runtime.ServerMetadata
+
+	msg, err := server.GetAvailableFiles(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
+func request_Tracker_GetFileInfo_0(ctx context.Context, marshaler runtime.Marshaler, client TrackerClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq DownloadFileRequest
+	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["hash"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "hash")
+	}
+
+	protoReq.Hash, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "hash", err)
+	}
+
+	msg, err := client.GetFileInfo(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_Tracker_GetFileInfo_0(ctx context.Context, marshaler runtime.Marshaler, server TrackerServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq DownloadFileRequest
+	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["hash"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "hash")
+	}
+
+	protoReq.Hash, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "hash", err)
+	}
+
+	msg, err := server.GetFileInfo(ctx, &protoReq)
+	return msg, metadata, err
+
+}
 
 func request_Peer_UploadFile_0(ctx context.Context, marshaler runtime.Marshaler, client PeerClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq File
@@ -67,7 +140,7 @@ func local_request_Peer_UploadFile_0(ctx context.Context, marshaler runtime.Mars
 
 }
 
-func request_Peer_GetLocalFileInfo_0(ctx context.Context, marshaler runtime.Marshaler, client PeerClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_Peer_GetFileInfo_0(ctx context.Context, marshaler runtime.Marshaler, client PeerClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq File
 	var metadata runtime.ServerMetadata
 
@@ -89,12 +162,12 @@ func request_Peer_GetLocalFileInfo_0(ctx context.Context, marshaler runtime.Mars
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
-	msg, err := client.GetLocalFileInfo(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.GetFileInfo(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_Peer_GetLocalFileInfo_0(ctx context.Context, marshaler runtime.Marshaler, server PeerServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_Peer_GetFileInfo_0(ctx context.Context, marshaler runtime.Marshaler, server PeerServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq File
 	var metadata runtime.ServerMetadata
 
@@ -116,7 +189,7 @@ func local_request_Peer_GetLocalFileInfo_0(ctx context.Context, marshaler runtim
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
-	msg, err := server.GetLocalFileInfo(ctx, &protoReq)
+	msg, err := server.GetFileInfo(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -155,6 +228,61 @@ func local_request_Peer_Download_0(ctx context.Context, marshaler runtime.Marsha
 
 }
 
+// RegisterTrackerHandlerServer registers the http handlers for service Tracker to "mux".
+// UnaryRPC     :call TrackerServer directly.
+// StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
+// Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterTrackerHandlerFromEndpoint instead.
+func RegisterTrackerHandlerServer(ctx context.Context, mux *runtime.ServeMux, server TrackerServer) error {
+
+	mux.Handle("GET", pattern_Tracker_GetAvailableFiles_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_Tracker_GetAvailableFiles_0(rctx, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_Tracker_GetAvailableFiles_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("GET", pattern_Tracker_GetFileInfo_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_Tracker_GetFileInfo_0(rctx, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_Tracker_GetFileInfo_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	return nil
+}
+
 // RegisterPeerHandlerServer registers the http handlers for service Peer to "mux".
 // UnaryRPC     :call PeerServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
@@ -184,7 +312,7 @@ func RegisterPeerHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 
 	})
 
-	mux.Handle("GET", pattern_Peer_GetLocalFileInfo_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_Peer_GetFileInfo_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -195,7 +323,7 @@ func RegisterPeerHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Peer_GetLocalFileInfo_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Peer_GetFileInfo_0(rctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -203,7 +331,7 @@ func RegisterPeerHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 			return
 		}
 
-		forward_Peer_GetLocalFileInfo_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Peer_GetFileInfo_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -232,6 +360,99 @@ func RegisterPeerHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 
 	return nil
 }
+
+// RegisterTrackerHandlerFromEndpoint is same as RegisterTrackerHandler but
+// automatically dials to "endpoint" and closes the connection when "ctx" gets done.
+func RegisterTrackerHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
+	conn, err := grpc.Dial(endpoint, opts...)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			if cerr := conn.Close(); cerr != nil {
+				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
+			}
+			return
+		}
+		go func() {
+			<-ctx.Done()
+			if cerr := conn.Close(); cerr != nil {
+				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
+			}
+		}()
+	}()
+
+	return RegisterTrackerHandler(ctx, mux, conn)
+}
+
+// RegisterTrackerHandler registers the http handlers for service Tracker to "mux".
+// The handlers forward requests to the grpc endpoint over "conn".
+func RegisterTrackerHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
+	return RegisterTrackerHandlerClient(ctx, mux, NewTrackerClient(conn))
+}
+
+// RegisterTrackerHandlerClient registers the http handlers for service Tracker
+// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "TrackerClient".
+// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "TrackerClient"
+// doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
+// "TrackerClient" to call the correct interceptors.
+func RegisterTrackerHandlerClient(ctx context.Context, mux *runtime.ServeMux, client TrackerClient) error {
+
+	mux.Handle("GET", pattern_Tracker_GetAvailableFiles_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_Tracker_GetAvailableFiles_0(rctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_Tracker_GetAvailableFiles_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("GET", pattern_Tracker_GetFileInfo_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_Tracker_GetFileInfo_0(rctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_Tracker_GetFileInfo_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	return nil
+}
+
+var (
+	pattern_Tracker_GetAvailableFiles_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"files"}, "", runtime.AssumeColonVerbOpt(true)))
+
+	pattern_Tracker_GetFileInfo_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1}, []string{"files", "hash"}, "", runtime.AssumeColonVerbOpt(true)))
+)
+
+var (
+	forward_Tracker_GetAvailableFiles_0 = runtime.ForwardResponseMessage
+
+	forward_Tracker_GetFileInfo_0 = runtime.ForwardResponseMessage
+)
 
 // RegisterPeerHandlerFromEndpoint is same as RegisterPeerHandler but
 // automatically dials to "endpoint" and closes the connection when "ctx" gets done.
@@ -291,7 +512,7 @@ func RegisterPeerHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 
 	})
 
-	mux.Handle("GET", pattern_Peer_GetLocalFileInfo_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_Peer_GetFileInfo_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -300,14 +521,14 @@ func RegisterPeerHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Peer_GetLocalFileInfo_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Peer_GetFileInfo_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Peer_GetLocalFileInfo_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Peer_GetFileInfo_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -337,7 +558,7 @@ func RegisterPeerHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 var (
 	pattern_Peer_UploadFile_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"upload"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Peer_GetLocalFileInfo_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1}, []string{"files", "name"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Peer_GetFileInfo_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1}, []string{"files", "name"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Peer_Download_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"download"}, "", runtime.AssumeColonVerbOpt(true)))
 )
@@ -345,7 +566,7 @@ var (
 var (
 	forward_Peer_UploadFile_0 = runtime.ForwardResponseMessage
 
-	forward_Peer_GetLocalFileInfo_0 = runtime.ForwardResponseMessage
+	forward_Peer_GetFileInfo_0 = runtime.ForwardResponseMessage
 
 	forward_Peer_Download_0 = runtime.ForwardResponseMessage
 )
