@@ -1,4 +1,4 @@
-//nolint:gosec // for hash md5 can be weak
+//nolint:gosec // for hash md5 can be weakcd gr
 package main
 
 import (

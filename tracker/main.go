@@ -12,7 +12,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-const grpcAddress = "localhost:8080"
+const grpcAddress = "localhost:9000"
 
 func setContext() context.Context {
 	return context.WithValue(context.Background(), "logger", newLogger())

@@ -14,7 +14,8 @@ import (
 type Peer struct {
 	addr  net.Addr
 	id    uuid.UUID
-	files map[string]*api.PiecesInfo
+	files map[string]*apg
+	i.PiecesInfo
 }
 
 func NewPeer(addr net.Addr, id uuid.UUID) *Peer {
@@ -49,14 +50,14 @@ func (s *Server) Upload(ctx context.Context, file *api.UploadFileRequest) (*empt
 		s.peers[clientID] = isPeer // добавляем в мапу пиров
 	}
 
-	_, exists := isPeer.files[file.Hash]
+	_, exists = isPeer.files[file.Hash]
 	if !exists {
 		newPieceInfo := &api.PiecesInfo{
 			HashFile: file.Hash,
 			AllFile:  true,
 		}
 
-		for i := 0; i < file.Pieces; i++ {
+		for i := 0; i < int(file.Pieces); i++ {
 			newPieceInfo.SerialPieces = append(newPieceInfo.SerialPieces, uint64(i))
 		}
 
