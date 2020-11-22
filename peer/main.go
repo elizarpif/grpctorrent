@@ -35,7 +35,10 @@ func getLogger(ctx context.Context) *logrus.Logger {
 	return log
 }
 
-const grpcAddress = "localhost:8081"
+const (
+	grpcAddress = "localhost:9001"
+	trackerAddr = "localhost:9000"
+)
 
 func main() {
 	logger := newLogger()
@@ -48,13 +51,26 @@ func main() {
 	grpcServer := grpc.NewServer()
 	defer grpcServer.GracefulStop()
 
-	server := &Peer{}
+	ctx := setContext()
+	server, err := NewPeer(ctx, trackerAddr)
+	if err != nil{
+		logger.WithError(err).Fatal("cannot create peer")
+	}
+
 	api.RegisterPeerServer(grpcServer, server)
 
 	group := errgroup.Group{}
 	group.Go(func() error {
 		logger.WithField("address", grpcAddress).Info("start grpc server")
 		return grpcServer.Serve(lis)
+	})
+
+	group.Go(func() error {
+		err = server.UploadFileToTracker(ctx, "some.txt")
+		if err != nil{
+			logger.WithError(err).Fatal()
+		}
+		return err
 	})
 
 	err = group.Wait()

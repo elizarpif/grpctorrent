@@ -15,7 +15,9 @@ type file struct {
 	name      string
 	hash      [16]byte
 	allPieces bool
+	length    uint64
 
+	piecesLen uint64
 	piecesMap map[uint]*api.Piece
 }
 
@@ -39,7 +41,7 @@ func getPieceLength(length int) int {
 }
 
 // деление файла на куски
-func splitFile(content []byte) map[uint]*api.Piece {
+func splitFile(content []byte) (map[uint]*api.Piece, uint64) {
 	pieceLen := getPieceLength(len(content))
 
 	var serial uint64 = 0
@@ -48,14 +50,14 @@ func splitFile(content []byte) map[uint]*api.Piece {
 
 	for i := 0; i < len(content); i += pieceLen {
 		mapPiece[uint(i)] = &api.Piece{
-			Payload:      string(content[i:pieceLen]),
+			Payload:      string(content[i:i+pieceLen]),
 			SerialNumber: serial,
 		}
 
 		serial++
 	}
 
-	return mapPiece
+	return mapPiece, uint64(pieceLen)
 }
 
 // чтение файла и создание торрент-файла с последующей загрузкой
@@ -65,10 +67,13 @@ func newFile(name string) (*file, error) {
 		return nil, err
 	}
 
+	pMap, pLen := splitFile(fContent)
 	f := &file{
+		length:    uint64(len(fContent)),
 		name:      name,
 		hash:      md5.Sum(fContent),
-		piecesMap: splitFile(fContent),
+		piecesMap: pMap,
+		piecesLen: pLen,
 		allPieces: true,
 	}
 
