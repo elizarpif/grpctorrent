@@ -1,54 +1,53 @@
 package main
 
 import (
-	"context"
+	"flag"
 	"net"
-	"os"
+	"net/http"
+
+	"github.com/elizarpif/grpctorrent/api"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
-
-	"github.com/elizarpif/grpctorrent/api"
-	"github.com/sirupsen/logrus"
 )
-
-type logger struct {
-}
-
-func setContext() context.Context {
-	return context.WithValue(context.Background(), logger{}, newLogger())
-}
-
-func newLogger() *logrus.Logger {
-	log := logrus.StandardLogger()
-
-	log.SetOutput(os.Stdout)
-	log.SetLevel(logrus.DebugLevel)
-
-	return log
-}
-
-func getLogger(ctx context.Context) *logrus.Logger {
-	value := ctx.Value(logger{})
-	log, ok := value.(*logrus.Logger)
-	if !ok {
-		log = newLogger()
-	}
-
-	return log
-}
 
 const (
-	grpcAddress = "localhost:9001"
-	trackerAddr = "localhost:9000"
+	trackerAddr     = "localhost:9000"
+	defaultGrpcPort = "9001"
+	defaultHttpPort = "8000"
 )
+
+func getAddress() (grpcAddr string, httpAddr string) {
+	peerPort := flag.String("grpc", defaultGrpcPort, "port for grpc address")
+
+	httpPort := flag.String("http", defaultHttpPort, "port for http address")
+	flag.Parse()
+
+	grpcAddr = net.JoinHostPort("localhost", func() string{
+		if peerPort == nil{
+			return defaultGrpcPort
+		}
+		return *peerPort
+	}())
+
+	httpAddr = net.JoinHostPort("localhost", func() string{
+		if peerPort == nil{
+			return defaultHttpPort
+		}
+		return *httpPort
+	}())
+
+	return grpcAddr, httpAddr
+}
 
 func main() {
 	logger := newLogger()
+	grpcAddr, httpAddr := getAddress()
 
-	lis, err := net.Listen("tcp", grpcAddress)
+	lis, err := net.Listen("tcp", grpcAddr)
 	if err != nil {
-		logger.WithError(err).WithField("address", grpcAddress).Fatal("listen for grpc")
+		logger.WithError(err).WithField("address", grpcAddr).Fatal("listen for grpc")
 	}
 
 	grpcServer := grpc.NewServer()
@@ -56,25 +55,33 @@ func main() {
 
 	ctx := setContext()
 
-	server, err := NewPeer(ctx, trackerAddr)
+	server, err := NewPeer(ctx, trackerAddr, grpcAddr)
 	if err != nil {
 		logger.WithError(err).Fatal("cannot create peer")
 	}
 
 	api.RegisterPeerServer(grpcServer, server)
 
+	mux := runtime.NewServeMux()
+	err = api.RegisterPeerHandlerFromEndpoint(ctx, mux, grpcAddr, []grpc.DialOption{grpc.WithInsecure()})
+	if err != nil {
+		logger.WithError(err).Fatal("cannot register")
+	}
+
+	srv := &http.Server{
+		Addr:     httpAddr,
+		Handler:  mux,
+	}
+
 	group := errgroup.Group{}
 	group.Go(func() error {
-		logger.WithField("address", grpcAddress).Info("start grpc server")
+		logger.WithField("grpc_address", grpcAddr).Info("start grpc server")
 		return grpcServer.Serve(lis)
 	})
 
 	group.Go(func() error {
-		err = server.UploadFileToTracker(ctx, "some.txt")
-		if err != nil {
-			logger.WithError(err).Fatal()
-		}
-		return err
+		logger.WithField("http_address", httpAddr).Info("start http server")
+		return srv.ListenAndServe()
 	})
 
 	err = group.Wait()

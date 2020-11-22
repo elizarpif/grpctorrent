@@ -2,25 +2,27 @@ package main
 
 import (
 	"context"
-	"encoding/hex"
 	"errors"
-
 	"github.com/elizarpif/grpctorrent/api"
+	"github.com/golang/protobuf/ptypes/empty"
 	_ "github.com/golang/protobuf/ptypes/empty"
 	"github.com/google/uuid"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"path"
 
 	"google.golang.org/grpc"
 )
 
 type Peer struct {
 	id        uuid.UUID
+	hashFiles map[string]*file
 	haveFiles map[string]*file
-
-	tracker api.TrackerClient
+	tracker   api.TrackerClient
 }
 
-func NewPeer(ctx context.Context, trackerAddr string) (*Peer, error) {
-	opts := []grpc.DialOption{grpc.WithInsecure()}
+func NewPeer(ctx context.Context, trackerAddr, peerServerAddr string) (*Peer, error) {
+	opts := []grpc.DialOption{grpc.WithInsecure(), grpc.WithPerRPCCredentials(newAuth(peerServerAddr))}
 	trackerClient, err := grpc.DialContext(ctx, trackerAddr, opts...)
 	if err != nil {
 		return nil, err
@@ -28,33 +30,147 @@ func NewPeer(ctx context.Context, trackerAddr string) (*Peer, error) {
 
 	return &Peer{
 		id:        uuid.New(),
+		hashFiles: make(map[string]*file),
 		haveFiles: make(map[string]*file),
 		tracker:   api.NewTrackerClient(trackerClient),
 	}, nil
 }
 
-func (p *Peer) UploadFileToTracker(ctx context.Context, name string) error {
-	f, err := newFile(name)
+func (p *Peer) UploadFile(ctx context.Context, f *api.File) (*empty.Empty, error) {
+	getLogger(ctx).WithField("filename", f.Name).Debug("upload file")
+
+	_, filename := path.Split(f.Name)
+
+	file, err := newFile(filename)
 	if err != nil {
-		return err
+		return nil, err
 	}
+
+	hash := file.hash
+
+	p.hashFiles[hash] = file
+	p.haveFiles[filename] = file
 
 	_, err = p.tracker.Upload(ctx, &api.UploadFileRequest{
 		ClientId:    p.id.String(),
-		Name:        name,
-		PieceLength: f.piecesLen,
-		Pieces:      uint64(len(f.piecesMap)),
-		Length:      f.length,
-		Hash:        hex.EncodeToString(f.hash[:]),
+		Name:        filename,
+		PieceLength: file.piecesLen,
+		Pieces:      uint64(len(file.piecesMap)),
+		Length:      file.length,
+		Hash:        hash,
 	})
-	return err
+	if err != nil {
+		return nil, status.Error(codes.Canceled, "can't upload file to tracker")
+	}
+
+	return &empty.Empty{}, nil
+}
+
+func (p *Peer) GetLocalFileInfo(ctx context.Context, f *api.File) (*api.FileInfo, error) {
+	is, ok := p.haveFiles[f.Name]
+	if !ok {
+		return nil, status.Error(codes.NotFound, "client doesn't have file")
+	}
+
+	return &api.FileInfo{
+		Name:        f.Name,
+		PieceLength: is.piecesLen,
+		Pieces:      uint64(len(is.piecesMap)),
+		Length:      is.length,
+		Hash:        is.hash,
+	}, nil
+}
+
+func (p *Peer) Download(ctx context.Context, f *api.File) (*api.FileInfo, error) {
+	hashStr := f.Name
+
+	info, err := p.tracker.GetFileInfo(ctx, &api.DownloadFileRequest{Hash: hashStr})
+	if err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+
+	// сходить на сервер и получить список пиров для файла
+	list, err := p.tracker.GetPeers(ctx, &api.GetPeersRequest{
+		HashFile: hashStr,
+		PeerId:   p.id.String(),
+	})
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	// обратиться к клиенту и скачать по кусочкам
+
+	isPieceDownload := make(map[uint64]bool)       // карта каждого куска  
+	peerAddrPositions := make(map[string][]uint64) // карта адреса пира к количеству достпуных кусок
+
+	piecesMap := make(map[uint]*api.Piece) // карта кусков
+
+	for _, p := range list.Peers {
+		peerAddrPositions[p.Address] = p.SerialPieces
+	}
+
+	for anotherPeerAddr, positions := range peerAddrPositions {
+		for _, position := range positions {
+			if !isPieceDownload[position] {
+
+				opts := []grpc.DialOption{grpc.WithInsecure()}
+				conn, err := grpc.DialContext(ctx, anotherPeerAddr, opts...)
+				if err != nil {
+					return nil, err
+				}
+
+				anotherPeer := api.NewPeerClient(conn)
+				piece, err := anotherPeer.GetPiece(ctx, &api.GetPieceRequest{
+					SerialNumber: position,
+					Hash:         hashStr,
+				})
+				if err == nil {
+					piecesMap[uint(position)] = piece
+					isPieceDownload[position] = true
+				} else {
+					getLogger(ctx).WithError(err).WithField("remote_peer", anotherPeerAddr).Error("cannot get piece")
+				}
+			}
+		}
+	}
+
+	isAllFileDownload := true
+	for _, piece := range piecesMap {
+		if !isPieceDownload[piece.SerialNumber] {
+			getLogger(ctx).WithField("piece_position", piece.SerialNumber).Error("file not downloaded")
+			isAllFileDownload = false
+		}
+	}
+
+	file := file{
+		name:      info.Name,
+		hash:      hashStr,
+		allPieces: isAllFileDownload,
+		length:    info.Length,
+		piecesLen: info.PieceLength,
+		piecesMap: piecesMap,
+	}
+
+	err = file.MergePieces(ctx)
+	if err != nil {
+		getLogger(ctx).Error("cannot merge file")
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &api.FileInfo{
+		Name:        info.Name,
+		PieceLength: file.piecesLen,
+		Pieces:      uint64(len(file.piecesMap)),
+		Length:      file.length,
+		Hash:        hashStr,
+	}, nil
 }
 
 // пришел запрос "дай кусок"
 func (p *Peer) GetPiece(ctx context.Context, request *api.GetPieceRequest) (*api.Piece, error) {
 	log := getLogger(ctx)
 
-	file, exists := p.haveFiles[request.Hash]
+	file, exists := p.hashFiles[request.Hash]
 	if !exists {
 		log.Error("file doesn't exists")
 		return nil, errors.New("file doesn't exists")

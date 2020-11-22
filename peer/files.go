@@ -4,9 +4,10 @@ package main
 import (
 	"context"
 	"crypto/md5"
-	"errors"
+	"encoding/hex"
 	"io/ioutil"
 	"os"
+	"path"
 	"sort"
 
 	"github.com/elizarpif/grpctorrent/api"
@@ -14,7 +15,7 @@ import (
 
 type file struct {
 	name      string
-	hash      [16]byte
+	hash      string
 	allPieces bool
 	length    uint64
 
@@ -69,11 +70,13 @@ func newFile(name string) (*file, error) {
 		return nil, err
 	}
 
+	hash := md5.Sum(fContent)
+
 	pMap, pLen := splitFile(fContent)
 	f := &file{
 		length:    uint64(len(fContent)),
 		name:      name,
-		hash:      md5.Sum(fContent),
+		hash:      hex.EncodeToString(hash[:]),
 		piecesMap: pMap,
 		piecesLen: pLen,
 		allPieces: true,
@@ -96,9 +99,15 @@ func (f *file) sortPieces() []*api.Piece {
 	return pieces
 }
 
+func getDownloadFilename(name string) string {
+	dir := "/home/space/5 sem/networks/grpctorrent/peer"
+
+	return path.Join(dir, "downloaded", name)
+}
+
 // запись в файл
 func (f *file) write(bytes []byte) error {
-	file, err := os.Create(f.name)
+	file, err := os.Create(getDownloadFilename(f.name))
 	if err != nil {
 		return err
 	}
@@ -125,12 +134,14 @@ func (f *file) MergePieces(ctx context.Context) error {
 		bytes = append(bytes, []byte(v.Payload)...)
 	}
 
-	newHash := md5.Sum(bytes)
+	tmp := md5.Sum(bytes)
+	newHash := hex.EncodeToString(tmp[:])
+
 	if f.hash != newHash {
 		log.WithField("oldHash", f.hash).
 			WithField("newHash", newHash).
 			Error("hash not expected")
-		return errors.New("hash not expected")
+		// return errors.New("hash not expected")
 	}
 
 	err := f.write(bytes)

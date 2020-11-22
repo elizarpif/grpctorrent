@@ -3,10 +3,11 @@ module github.com/elizarpif/grpctorrent/peer
 go 1.14
 
 require (
-	github.com/elizarpif/grpctorrent v0.1.2 // indirect
-	github.com/elizarpif/grpctorrent/api v0.0.0-20201121235006-6c7dec947f81
+	github.com/elizarpif/grpctorrent/api v0.0.0-20201122131751-19d73f529125
+	github.com/go-chi/chi v1.5.0
 	github.com/golang/protobuf v1.4.3
 	github.com/google/uuid v1.1.2
+	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/sirupsen/logrus v1.7.0
 	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b // indirect
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
