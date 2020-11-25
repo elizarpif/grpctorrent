@@ -89,12 +89,14 @@ type downloadFields struct {
 	piecesMap                map[uint]*api.Piece
 }
 
+// скачивание одного кусочка
 func (p *Peer) downloadPiece(ctx context.Context, df *downloadFields) error {
 	position := df.position
 
 	// если такой кусок еще не загружен
-	if !df.isPieceDownload[df.position] {
+	if !df.isPieceDownload[position] {
 		opts := []grpc.DialOption{grpc.WithInsecure()}
+
 		conn, err := grpc.DialContext(ctx, df.anotherPeerAddr, opts...)
 		if err != nil {
 			return err
@@ -123,7 +125,6 @@ func (p *Peer) downloadPiece(ctx context.Context, df *downloadFields) error {
 			HashFile: df.hashStr,
 			Serial:   df.position,
 		})
-
 		if err != nil {
 			logger.GetLogger(ctx).WithError(err).Error("cannot post piece info")
 			return err
@@ -141,7 +142,7 @@ type fields struct {
 	file            *file
 }
 
-func (p *Peer) downloadAll(ctx context.Context, group *errgroup.Group, f *fields) {
+func (p *Peer) downloadFile(ctx context.Context, group *errgroup.Group, f *fields) {
 	group.Go(func() error {
 		f.mutex.Lock()
 
@@ -184,8 +185,6 @@ func (p *Peer) downloadAll(ctx context.Context, group *errgroup.Group, f *fields
 	})
 }
 
-// TODO use goroutines
-// TODO add logger in middleware grpc
 func (p *Peer) Download(ctx context.Context, f *api.DownloadFileRequest) (*api.DownloadFileResponse, error) {
 	hashStr := f.Hash
 
@@ -228,7 +227,7 @@ func (p *Peer) Download(ctx context.Context, f *api.DownloadFileRequest) (*api.D
 
 	// пройтись по списку доступных пиров и скачать у них доступные файлы
 	for anotherPeerAddr, positions := range peerAddrPositions {
-		p.downloadAll(ctx, group, &fields{
+		p.downloadFile(ctx, group, &fields{
 			mutex:           mutex,
 			addr:            anotherPeerAddr,
 			positions:       positions,
