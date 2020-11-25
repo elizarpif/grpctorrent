@@ -11,6 +11,7 @@ import (
 	"sort"
 
 	"github.com/elizarpif/grpctorrent/api"
+	"github.com/elizarpif/logger"
 )
 
 type file struct {
@@ -32,7 +33,7 @@ func getPieceLength(length int) int {
 	if length <= 1024 { // 1 KB
 		return 256 // 256 B
 	}
-	if length <= 1024 * 1024 { // 1MB
+	if length <= 1024*1024 { // 1MB
 		return 1024 // 1 KB
 	}
 	if length <= 256*1024*1024 { // 256 MB
@@ -130,7 +131,7 @@ func (f *file) write(bytes []byte) error {
 //nolint:gosec // for hash
 // склеивание файла из кусочков
 func (f *file) MergePieces(ctx context.Context) error {
-	log := getLogger(ctx)
+	log := logger.GetLogger(ctx)
 
 	if !f.allPieces {
 		log.Warning("no all pieces")
@@ -141,7 +142,7 @@ func (f *file) MergePieces(ctx context.Context) error {
 
 	bytes := []byte{}
 	for _, v := range pieces {
-		bytes = append(bytes, []byte(v.Payload)...)
+		bytes = append(bytes, v.Payload...)
 	}
 
 	tmp := md5.Sum(bytes)
@@ -151,7 +152,6 @@ func (f *file) MergePieces(ctx context.Context) error {
 		log.WithField("oldHash", f.hash).
 			WithField("newHash", newHash).
 			Error("hash not expected")
-		// return errors.New("hash not expected")
 	}
 
 	err := f.write(bytes)
