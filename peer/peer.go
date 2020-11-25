@@ -3,15 +3,17 @@ package main
 import (
 	"context"
 	"errors"
+	"sync"
+	"time"
+
 	"github.com/elizarpif/grpctorrent/api"
 	"github.com/golang/protobuf/ptypes/empty"
-	_ "github.com/golang/protobuf/ptypes/empty"
 	"github.com/google/uuid"
+
+	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"path"
-
-	"google.golang.org/grpc"
 )
 
 type Peer struct {
@@ -38,10 +40,7 @@ func NewPeer(ctx context.Context, trackerAddr, peerServerAddr string) (*Peer, er
 
 func (p *Peer) UploadFile(ctx context.Context, f *api.File) (*empty.Empty, error) {
 	getLogger(ctx).WithField("filename", f.Name).Debug("upload file")
-
-	_, filename := path.Split(f.Name)
-
-	file, err := newFile(filename)
+	file, err := newFile(f.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -49,11 +48,11 @@ func (p *Peer) UploadFile(ctx context.Context, f *api.File) (*empty.Empty, error
 	hash := file.hash
 
 	p.hashFiles[hash] = file
-	p.haveFiles[filename] = file
+	p.haveFiles[file.name] = file
 
 	_, err = p.tracker.Upload(ctx, &api.UploadFileRequest{
 		ClientId:    p.id.String(),
-		Name:        filename,
+		Name:        file.name,
 		PieceLength: file.piecesLen,
 		Pieces:      uint64(len(file.piecesMap)),
 		Length:      file.length,
@@ -66,7 +65,7 @@ func (p *Peer) UploadFile(ctx context.Context, f *api.File) (*empty.Empty, error
 	return &empty.Empty{}, nil
 }
 
-func (p *Peer) GetLocalFileInfo(ctx context.Context, f *api.File) (*api.FileInfo, error) {
+func (p *Peer) GetFileInfo(ctx context.Context, f *api.File) (*api.FileInfo, error) {
 	is, ok := p.haveFiles[f.Name]
 	if ok {
 		return &api.FileInfo{
@@ -78,18 +77,13 @@ func (p *Peer) GetLocalFileInfo(ctx context.Context, f *api.File) (*api.FileInfo
 		}, nil
 	}
 
-	info, err := p.tracker.GetFileInfo(ctx, &api.DownloadFileRequest{Hash: getHash([]byte(f.Name))})
-	if err != nil {
-		getLogger(ctx).WithError(err).Error("cannot find file on server")
-		return nil, status.Error(codes.NotFound, err.Error())
-	}
-
-	return info, nil
+	getLogger(ctx).Error("cannot find file")
+	return nil, status.Error(codes.NotFound, "cannot find file")
 }
 
 // TODO use goroutines
 // TODO add logger in middleware grpc
-func (p *Peer) Download(ctx context.Context, f *api.DownloadFileRequest) (*api.FileInfo, error) {
+func (p *Peer) Download(ctx context.Context, f *api.DownloadFileRequest) (*api.DownloadFileResponse, error) {
 	hashStr := f.Hash
 
 	info, err := p.tracker.GetFileInfo(ctx, &api.DownloadFileRequest{Hash: hashStr})
@@ -117,39 +111,79 @@ func (p *Peer) Download(ctx context.Context, f *api.DownloadFileRequest) (*api.F
 		peerAddrPositions[p.Address] = p.SerialPieces
 	}
 
+	mutex := sync.RWMutex{}
+	group := errgroup.Group{}
+
 	// пройтись по списку доступных пиров и скачать у них доступные файлы
 	for anotherPeerAddr, positions := range peerAddrPositions {
-		for _, position := range positions {
-			// если такой кусок еще не загружен
-			if !isPieceDownload[position] {
+		group.Go(func() error {
+			for _, position := range positions {
+				// если такой кусок еще не загружен
+				mutex.RLock()
+				isDownload  := isPieceDownload[position]
+				mutex.RUnlock()
 
-				opts := []grpc.DialOption{grpc.WithInsecure()}
-				conn, err := grpc.DialContext(ctx, anotherPeerAddr, opts...)
-				if err != nil {
-					return nil, err
-				}
+				if !isDownload {
 
-				anotherPeer := api.NewPeerClient(conn)
-				piece, err := anotherPeer.GetPiece(ctx, &api.GetPieceRequest{
-					SerialNumber: position,
-					Hash:         hashStr,
-				})
-				if err == nil {
-					piecesMap[uint(position)] = piece
-					isPieceDownload[position] = true
-
-					_, err := p.tracker.PostPieceInfo(ctx, &api.PieceInfo{
-						HashFile: hashStr,
-						Serial:   position,
-					})
+					opts := []grpc.DialOption{grpc.WithInsecure()}
+					conn, err := grpc.DialContext(ctx, anotherPeerAddr, opts...)
 					if err != nil {
-						getLogger(ctx).WithError(err).Error("cannot post piece info")
+						return err
 					}
-				} else {
-					getLogger(ctx).WithError(err).WithField("remote_peer", anotherPeerAddr).Error("cannot get piece")
+					defer conn.Close()
+
+					anotherPeer := api.NewPeerClient(conn)
+					piece, err := anotherPeer.GetPiece(ctx, &api.GetPieceRequest{
+						SerialNumber: position,
+						Hash:         hashStr,
+					})
+					if err == nil {
+						mutex.Lock()
+
+						piecesMap[uint(position)] = piece
+						isPieceDownload[position] = true
+
+						getLogger(ctx).
+							WithField("peer_addr", anotherPeerAddr).
+							WithField("position", position).
+							Debug("download")
+
+						_, err := p.tracker.PostPieceInfo(ctx, &api.PieceInfo{
+							HashFile: hashStr,
+							Serial:   position,
+						})
+
+						mutex.Unlock()
+
+						if err != nil {
+							getLogger(ctx).WithError(err).Error("cannot post piece info")
+							return err
+						}
+
+						time.Sleep(time.Second)
+					} else {
+						mutex.Lock()
+						getLogger(ctx).WithError(err).WithField("remote_peer", anotherPeerAddr).Error("cannot get piece")
+						mutex.Unlock()
+					}
 				}
+
+				mutex.RLock()
+				lenDownloaded := len(isPieceDownload)
+				if uint64(lenDownloaded) == info.Pieces {
+					return nil
+				}
+				mutex.RUnlock()
 			}
-		}
+
+			return nil
+		})
+	}
+
+	err = group.Wait()
+	if err != nil {
+		getLogger(ctx).WithError(err).Error("error get pieces")
+		return nil, status.Error(codes.Internal, "error in get pieces")
 	}
 
 	isAllFileDownload := true
@@ -175,14 +209,11 @@ func (p *Peer) Download(ctx context.Context, f *api.DownloadFileRequest) (*api.F
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	p.haveFiles[file.hash] = file
+	p.hashFiles[file.hash] = file
+	p.haveFiles[file.name] = file
 
-	return &api.FileInfo{
-		Name:        info.Name,
-		PieceLength: file.piecesLen,
-		Pieces:      uint64(len(file.piecesMap)),
-		Length:      file.length,
-		Hash:        hashStr,
+	return &api.DownloadFileResponse{
+		FilePath: getDownloadFilename(file.name),
 	}, nil
 }
 
@@ -198,7 +229,7 @@ func (p *Peer) GetPiece(ctx context.Context, request *api.GetPieceRequest) (*api
 
 	piece, exists := file.piecesMap[uint(request.SerialNumber)]
 	if !exists {
-		log.Error("piece doesn't exists")
+		log.WithField("serial", request.SerialNumber).WithField("map", file.piecesMap).Error("piece doesn't exists")
 		return nil, errors.New("piece doesn't exists")
 	}
 

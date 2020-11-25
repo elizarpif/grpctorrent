@@ -3,7 +3,7 @@ module github.com/elizarpif/grpctorrent/peer
 go 1.14
 
 require (
-	github.com/elizarpif/grpctorrent/api v0.0.0-20201122162400-0e6b6866ccc8
+	github.com/elizarpif/grpctorrent/api v0.0.0-20201122230003-f41fd86b6564
 	github.com/go-chi/chi v1.5.0
 	github.com/golang/protobuf v1.4.3
 	github.com/google/uuid v1.1.2

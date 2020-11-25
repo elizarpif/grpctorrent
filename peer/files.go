@@ -26,16 +26,16 @@ type file struct {
 // fixme
 // установление длины каждого куска файла
 func getPieceLength(length int) int {
-	if length < 256 {
+	if length <= 256 {
 		return 1
 	}
-	if length < 1024 { // 1 KB
+	if length <= 1024 { // 1 KB
 		return 256 // 256 B
 	}
-	if length < 1024*1024 { // 1MB
-		return 256 * 1024 // 256KB
+	if length <= 1024 * 1024 { // 1MB
+		return 1024 // 1 KB
 	}
-	if length < 256*1024*1024 { // 256 MB
+	if length <= 256*1024*1024 { // 256 MB
 		return 1024 * 1024 // 1MB
 	}
 
@@ -51,8 +51,13 @@ func splitFile(content []byte) (res map[uint]*api.Piece, length uint64) {
 	mapPiece := make(map[uint]*api.Piece)
 
 	for i := 0; i < len(content); i += pieceLen {
-		mapPiece[uint(i)] = &api.Piece{
-			Payload:      string(content[i : i+pieceLen]),
+		bound := i + pieceLen
+		if len(content) < bound {
+			bound = len(content)
+		}
+
+		mapPiece[uint(serial)] = &api.Piece{
+			Payload:      content[i:bound],
 			SerialNumber: serial,
 		}
 
@@ -62,10 +67,11 @@ func splitFile(content []byte) (res map[uint]*api.Piece, length uint64) {
 	return mapPiece, uint64(pieceLen)
 }
 
-func getHash(fContent []byte) string{
+func getHash(fContent []byte) string {
 	hash := md5.Sum(fContent)
 	return hex.EncodeToString(hash[:])
 }
+
 //nolint:gosec // for hash
 // чтение файла и создание торрент-файла с последующей загрузкой
 func newFile(name string) (*file, error) {
@@ -74,10 +80,12 @@ func newFile(name string) (*file, error) {
 		return nil, err
 	}
 
+	_, filename := path.Split(name)
+
 	pMap, pLen := splitFile(fContent)
 	f := &file{
 		length:    uint64(len(fContent)),
-		name:      name,
+		name:      filename,
 		hash:      getHash(fContent),
 		piecesMap: pMap,
 		piecesLen: pLen,

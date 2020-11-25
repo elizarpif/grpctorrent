@@ -24,15 +24,15 @@ func getAddress() (grpcAddr string, httpAddr string) {
 	httpPort := flag.String("http", defaultHttpPort, "port for http address")
 	flag.Parse()
 
-	grpcAddr = net.JoinHostPort("localhost", func() string{
-		if peerPort == nil{
+	grpcAddr = net.JoinHostPort("localhost", func() string {
+		if peerPort == nil {
 			return defaultGrpcPort
 		}
 		return *peerPort
 	}())
 
-	httpAddr = net.JoinHostPort("localhost", func() string{
-		if peerPort == nil{
+	httpAddr = net.JoinHostPort("localhost", func() string {
+		if httpPort == nil {
 			return defaultHttpPort
 		}
 		return *httpPort
@@ -69,8 +69,8 @@ func main() {
 	}
 
 	srv := &http.Server{
-		Addr:     httpAddr,
-		Handler:  mux,
+		Addr:    httpAddr,
+		Handler: mux,
 	}
 
 	group := errgroup.Group{}

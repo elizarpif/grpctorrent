@@ -19,6 +19,14 @@ github.com/elizarpif/grpctorrent/api v0.0.0-20201122131751-19d73f529125 h1:wb/yV
 github.com/elizarpif/grpctorrent/api v0.0.0-20201122131751-19d73f529125/go.mod h1:LqjN2UlkLceHTWmKATzpXGHaAzXZgghPBCT+YZ53SQM=
 github.com/elizarpif/grpctorrent/api v0.0.0-20201122162400-0e6b6866ccc8 h1:qcNgHrbfpfhysqIDpNzUvGClMXR/6GCzCYaJRD8ApRo=
 github.com/elizarpif/grpctorrent/api v0.0.0-20201122162400-0e6b6866ccc8/go.mod h1:LqjN2UlkLceHTWmKATzpXGHaAzXZgghPBCT+YZ53SQM=
+github.com/elizarpif/grpctorrent/api v0.0.0-20201122193906-e62711d9f906 h1:Je8Tm8yw4iHa4hjD4eUc3sfuNROfNX7qSstFHiHISO4=
+github.com/elizarpif/grpctorrent/api v0.0.0-20201122193906-e62711d9f906/go.mod h1:LqjN2UlkLceHTWmKATzpXGHaAzXZgghPBCT+YZ53SQM=
+github.com/elizarpif/grpctorrent/api v0.0.0-20201122194431-94955806a8e7 h1:Mp80BxBtC24vOl4vlA+bzzgnwP9diR+tmnhoS1HyCX4=
+github.com/elizarpif/grpctorrent/api v0.0.0-20201122194431-94955806a8e7/go.mod h1:LqjN2UlkLceHTWmKATzpXGHaAzXZgghPBCT+YZ53SQM=
+github.com/elizarpif/grpctorrent/api v0.0.0-20201122195556-dedcd6f75bc9 h1:/3R7gMVTGWvS7HRs6DaHff3bOlnjJPGieL+hPXsEbIM=
+github.com/elizarpif/grpctorrent/api v0.0.0-20201122195556-dedcd6f75bc9/go.mod h1:LqjN2UlkLceHTWmKATzpXGHaAzXZgghPBCT+YZ53SQM=
+github.com/elizarpif/grpctorrent/api v0.0.0-20201122230003-f41fd86b6564 h1:UoIK5rD+z9i4MhvZPCiGJhrCc8qQ2UUvEIt9wFz2mgM=
+github.com/elizarpif/grpctorrent/api v0.0.0-20201122230003-f41fd86b6564/go.mod h1:LqjN2UlkLceHTWmKATzpXGHaAzXZgghPBCT+YZ53SQM=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1mIlRU8Am5FuJP05cCM98=

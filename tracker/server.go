@@ -103,7 +103,7 @@ func (s *Server) Upload(ctx context.Context, file *api.UploadFileRequest) (*empt
 	}
 
 	newPieceInfo := &availableFile{
-		hash: file.Hash,
+		hash:   file.Hash,
 		pieces: make(map[uint]bool),
 	}
 
@@ -137,6 +137,10 @@ func (s *Server) GetPeers(ctx context.Context, request *api.GetPeersRequest) (*a
 
 	peers := s.hashPeers[request.HashFile]
 	for _, p := range peers {
+		if p.addr == addr {
+			continue
+		}
+
 		respPeer := &api.ListPeers_Peer{
 			Address: p.addr,
 		}
@@ -183,7 +187,8 @@ func (s *Server) PostPieceInfo(ctx context.Context, info *api.PieceInfo) (*empty
 		currentPeer.files[info.HashFile] = newAvailableFile(info.HashFile, uint(info.Serial))
 		s.hashPeers[info.HashFile] = append(s.hashPeers[info.HashFile], currentPeer)
 	} else {
-		peer.files[info.HashFile] = newAvailableFile(info.HashFile, uint(info.Serial))
+		curPiecesMap := peer.files[info.HashFile].pieces
+		curPiecesMap[uint(info.Serial)] = true
 	}
 
 	// check is file piece added
@@ -201,6 +206,19 @@ func findPeer(peers []*Peer, addr string) *Peer {
 	return nil
 }
 
-func (s *Server) PostFileInfo(ctx context.Context, download *api.AllPiecesDownload) (*empty.Empty, error) {
-	panic("implement me")
+func (s *Server) GetAvailableFiles(ctx context.Context, e *empty.Empty) (*api.ListFiles, error) {
+	resp := &api.ListFiles{}
+
+	for _, v := range s.hashFiles {
+		resp.Files = append(resp.Files, &api.FileInfo{
+			Name:        v.Name,
+			PieceLength: v.PieceLength,
+			Pieces:      v.Pieces,
+			Length:      v.Length,
+			Hash:        v.Hash,
+		})
+	}
+
+	resp.Count = uint64(len(resp.Files))
+	return resp, nil
 }
