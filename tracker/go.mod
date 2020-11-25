@@ -3,15 +3,12 @@ module github.com/elizarpif/grpctorrent/tracker
 go 1.14
 
 require (
-	github.com/elizarpif/grpctorrent v0.1.4 // indirect
-	github.com/elizarpif/grpctorrent/api v0.0.0-20201122162400-0e6b6866ccc8
+	github.com/elizarpif/grpctorrent/api v0.0.0-20201122195556-dedcd6f75bc9
+	github.com/elizarpif/logger v0.0.2
 	github.com/golang/protobuf v1.4.3
 	github.com/google/uuid v1.1.2
+	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/sirupsen/logrus v1.7.0
-	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b // indirect
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
-	golang.org/x/sys v0.0.0-20201119102817-f84b799fce68 // indirect
-	golang.org/x/text v0.3.4 // indirect
-	google.golang.org/genproto v0.0.0-20201119123407-9b1e624d6bc4 // indirect
 	google.golang.org/grpc v1.33.2
 )

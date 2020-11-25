@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"errors"
+	"sync"
 
 	"github.com/elizarpif/grpctorrent/api"
+	"github.com/elizarpif/logger"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/google/uuid"
 
@@ -19,7 +21,7 @@ type Peer struct {
 
 type availableFile struct {
 	hash   string        // хэш файла
-	pieces map[uint]bool // доступные куски для скачивания 
+	pieces map[uint]bool // доступные куски для скачивания
 }
 
 func newAvailableFile(hash string, pieceNum uint) *availableFile {
@@ -37,6 +39,8 @@ type Server struct {
 	hashPeers map[string][]*Peer       // хэш файла к пирам
 	hashFiles map[string]*api.FileInfo // хэш файла к файлу
 	peers     map[string]*Peer         // пиры по address
+
+	mutex *sync.RWMutex
 }
 
 func NewServer() *Server {
@@ -44,6 +48,8 @@ func NewServer() *Server {
 		hashPeers: make(map[string][]*Peer),
 		hashFiles: make(map[string]*api.FileInfo),
 		peers:     make(map[string]*Peer),
+
+		mutex: &sync.RWMutex{},
 	}
 }
 
@@ -73,7 +79,7 @@ func getPeerAddrFromMetadata(ctx context.Context) (string, error) {
 func (s *Server) addPeer(ctx context.Context, clientID uuid.UUID) (*Peer, error) {
 	addr, err := getPeerAddrFromMetadata(ctx)
 	if err != nil {
-		getLogger(ctx).WithError(err).Error("cannot get peer from context")
+		logger.GetLogger(ctx).WithError(err).Error("cannot get peer from context")
 		return nil, errors.New("cannot get peer from context")
 	}
 
@@ -92,7 +98,6 @@ func (s *Server) Upload(ctx context.Context, file *api.UploadFileRequest) (*empt
 		return nil, err
 	}
 
-	getLogger(ctx)
 	// добавляем информацию о файле в мапу
 	s.hashFiles[file.Hash] = &api.FileInfo{
 		Name:        file.Name,
@@ -103,7 +108,7 @@ func (s *Server) Upload(ctx context.Context, file *api.UploadFileRequest) (*empt
 	}
 
 	newPieceInfo := &availableFile{
-		hash: file.Hash,
+		hash:   file.Hash,
 		pieces: make(map[uint]bool),
 	}
 
@@ -127,7 +132,7 @@ func (s *Server) GetPeers(ctx context.Context, request *api.GetPeersRequest) (*a
 
 	addr, err := getPeerAddrFromMetadata(ctx)
 	if err != nil {
-		getLogger(ctx).WithError(err).Error("cannot get peer from context")
+		logger.GetLogger(ctx).WithError(err).Error("cannot get peer from context")
 		return nil, errors.New("cannot get peer from context")
 	}
 
@@ -137,13 +142,17 @@ func (s *Server) GetPeers(ctx context.Context, request *api.GetPeersRequest) (*a
 
 	peers := s.hashPeers[request.HashFile]
 	for _, p := range peers {
+		if p.addr == addr {
+			continue
+		}
+
 		respPeer := &api.ListPeers_Peer{
 			Address: p.addr,
 		}
 
 		is, ok := p.files[request.HashFile]
 		if !ok {
-			getLogger(ctx).Error("files in peer doesnt exist!")
+			logger.GetLogger(ctx).Error("files in peer doesnt exist!")
 			return nil, errors.New("files in peer doesnt exist!")
 		}
 
@@ -172,6 +181,8 @@ func (s *Server) PostPieceInfo(ctx context.Context, info *api.PieceInfo) (*empty
 	// ищем текущего пира в списке пиров по хешу
 	peer := findPeer(peers, addr)
 
+	s.mutex.Lock()
+
 	// если его нет...
 	if peer == nil {
 		// получаем текущего пира из мапы всех пиров
@@ -183,9 +194,11 @@ func (s *Server) PostPieceInfo(ctx context.Context, info *api.PieceInfo) (*empty
 		currentPeer.files[info.HashFile] = newAvailableFile(info.HashFile, uint(info.Serial))
 		s.hashPeers[info.HashFile] = append(s.hashPeers[info.HashFile], currentPeer)
 	} else {
-		peer.files[info.HashFile] = newAvailableFile(info.HashFile, uint(info.Serial))
+		curPiecesMap := peer.files[info.HashFile].pieces
+		curPiecesMap[uint(info.Serial)] = true
 	}
 
+	s.mutex.Unlock()
 	// check is file piece added
 
 	return &empty.Empty{}, nil
@@ -201,6 +214,19 @@ func findPeer(peers []*Peer, addr string) *Peer {
 	return nil
 }
 
-func (s *Server) PostFileInfo(ctx context.Context, download *api.AllPiecesDownload) (*empty.Empty, error) {
-	panic("implement me")
+func (s *Server) GetAvailableFiles(ctx context.Context, e *empty.Empty) (*api.ListFiles, error) {
+	resp := &api.ListFiles{}
+
+	for _, v := range s.hashFiles {
+		resp.Files = append(resp.Files, &api.FileInfo{
+			Name:        v.Name,
+			PieceLength: v.PieceLength,
+			Pieces:      v.Pieces,
+			Length:      v.Length,
+			Hash:        v.Hash,
+		})
+	}
+
+	resp.Count = uint64(len(resp.Files))
+	return resp, nil
 }

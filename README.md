@@ -47,7 +47,7 @@ go build .
 curl -d "{\"name\":\"/home/space/5 sem/networks/grpctorrent/peer/some.txt\"}" -X POST http://localhost:8002/upload | jq
 ```
 
-- спрашиваем информацию о файле
+- спрашиваем информацию о файле на стороне клиента
 ```shell script
 curl http://localhost:8002/files/some.txt | jq
 ```
@@ -73,4 +73,24 @@ curl -d "{\"hash\":\"9702842ac5824617babda6a32791ac2f\"}" -X POST http://localho
   "length": "24",
   "hash": "9702842ac5824617babda6a32791ac2f"
 }
+```
+
+- список всех файлов на трекер-сервере
+```shell script
+curl http://localhost:8000/files | jq
+```
+```json
+{
+  "count": "1",
+  "files": [
+    {
+      "name": "some.txt",
+      "piece_length": "1",
+      "pieces": "24",
+      "length": "24",
+      "hash": "9702842ac5824617babda6a32791ac2f"
+    }
+  ]
+}
+
 ```

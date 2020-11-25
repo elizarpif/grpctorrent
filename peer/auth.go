@@ -19,4 +19,3 @@ func (a *auth) GetRequestMetadata(ctx context.Context, uri ...string) (map[strin
 func (a *auth) RequireTransportSecurity() bool {
 	return false
 }
-

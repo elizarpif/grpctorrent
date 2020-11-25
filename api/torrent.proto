@@ -37,10 +37,6 @@ message PieceInfo {
   uint64 serial = 2; // кусочек который скачан и раздается
 }
 
-message AllPiecesDownload {
-  string hash = 1;
-}
-
 message DownloadFileRequest {
   string hash = 1;
 }
@@ -53,15 +49,29 @@ message FileInfo {
   string hash = 5 ; // хэш файла
 }
 
+message ListFiles {
+  uint64 count = 1;
+  repeated FileInfo files = 2;
+}
+
 service Tracker {
-  rpc GetFileInfo(DownloadFileRequest) returns (FileInfo);
+  rpc GetAvailableFiles(google.protobuf.Empty) returns(ListFiles){
+    option (google.api.http) = {
+      get: "/files"
+    };
+  };
+  rpc GetFileInfo(DownloadFileRequest) returns (FileInfo){
+    option (google.api.http) = {
+      get: "/files/{hash}"
+    };
+  };
   rpc Upload (UploadFileRequest) returns (google.protobuf.Empty); // загрузить торрент-файл на сервер
   rpc GetPeers (GetPeersRequest) returns (ListPeers); // заявить о себе и получить список пиров
   rpc PostPieceInfo (PieceInfo) returns (google.protobuf.Empty); // сообщить информацию о файловых кусочках которые клиент уже скачал и раздает
 }
 
 message Piece {
-  string payload = 1; // кусочек
+  bytes payload = 1; // кусочек
   uint64 serial_number = 2; // номер кусочка
 }
 
@@ -88,7 +98,7 @@ service Peer {
     };
   }
 
-  rpc GetLocalFileInfo(File) returns (FileInfo){
+  rpc GetFileInfo(File) returns (FileInfo){
     option (google.api.http) = {
       get: "/files/{name}"
     };
