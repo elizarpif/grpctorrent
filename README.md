@@ -1,5 +1,15 @@
 # Torrent
-## Задание
+## Description of the task | Задание
+You need to develop peer-to-peer file loader realizes the next requirements:
+
+- Information about the file to upload stored in a defined handler: it stores information about division of the file into samll fragments
+- Each client reports data about small fragments to the central server. The client have already downloaded all fragments and it suggests to take them to other clients
+- The client contacts to server for get a list of the available clients who are owners of the interest file
+- The client contacts to other clients by each fragment
+- After collecting all the pieces, the client collects the file and reports that the file has been downloaded and is available
+
+|
+
 Необходимо разработать peer-to-peer файловый «загрузчик», реализующий следующие требования:
 
 - Информация о файле для загрузки хранится в определённом хандлере: в нём хранится информация о разбиении файла на небольшие фрагменты.
@@ -8,46 +18,46 @@
 - Клиент обращается к другим клиентам по каждому из кусочков.
 - Собрав все куски клиент собирает файл и сообщает, что файл скачан и доступен.
 
-## Реализация
+## Realization | Реализация
 
 ### api 
-Описание апи в парадигме grpc
+API description at the grpc paradigm | Описание апи в парадигме grpc
 
 ### tracker
-Централизованный сервер. Хранит информацию о пирах
+The central server. It stores information about peers | Централизованный сервер. Хранит информацию о пирах
 
 ### peer
-"Торрент-клиент" 
+The "torrent"-client | "Торрент-клиент" 
 
 
-## Пример работы
+## Work example | Пример работы
 
-- запускаем сервер
+- launch the server | запускаем сервер
 ```shell script
 cd tracker
 go build .
 ./tracker
 ```
-- запускаем 1 клиента (тот, который загрузит файл)
+-  launch the first client (it will upload the file) | запускаем 1 клиента (тот, который загрузит файл)
 ```shell script
 cd peer
 go build .
 ./peer -http=8002 -grpc=9002
 ```
 
-- запускам 2 клиента (тот, который скачает файл у 1 клиента)
+- launch the second client (it will upload file from the first client) | запускам 2 клиента (тот, который скачает файл у 1 клиента)
 ```shell script
 cd peer
 go build .
 ./peer -http=8000 -grpc=9000
 ```
 
-- загружаем файл на сервер
+- upload file to the server | загружаем файл на сервер
 ```shell script
 curl -d "{\"name\":\"/home/space/5 sem/networks/grpctorrent/peer/some.txt\"}" -X POST http://localhost:8002/upload | jq
 ```
 
-- спрашиваем информацию о файле на стороне клиента
+- ask information about the file | спрашиваем информацию о файле на стороне клиента
 ```shell script
 curl http://localhost:8002/files/some.txt | jq
 ```
@@ -61,7 +71,7 @@ curl http://localhost:8002/files/some.txt | jq
 }
 ```
 
-- скачиваем файл
+- download the file | скачиваем файл
 ```shell script
 curl -d "{\"hash\":\"9702842ac5824617babda6a32791ac2f\"}" -X POST http://localhost:8000/download | jq
 ```
@@ -75,7 +85,7 @@ curl -d "{\"hash\":\"9702842ac5824617babda6a32791ac2f\"}" -X POST http://localho
 }
 ```
 
-- список всех файлов на трекер-сервере
+- get the list of the all files on the tracker-server | список всех файлов на трекер-сервере
 ```shell script
 curl http://localhost:8000/files | jq
 ```
