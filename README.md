@@ -1,6 +1,6 @@
 # Torrent
-## Description of the task
-You need to develop peer-to-peer file loader realizes the next requirements:
+## Requirements
+Peer-to-peer file loader realizes the next requirements:
 
 - Information about the file to upload stored in a defined handler: it stores information about division of the file into samll fragments
 - Each client reports data about small fragments to the central server. The client have already downloaded all fragments and it suggests to take them to other clients
