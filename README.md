@@ -1,4 +1,7 @@
-# Torrent
+# Hand-made grpc torrent
+
+Laboratory work for the university.
+
 ## Requirements
 Peer-to-peer file loader realizes the next requirements:
 
